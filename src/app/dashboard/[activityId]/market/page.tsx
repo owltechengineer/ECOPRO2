@@ -1,0 +1,372 @@
+"use client";
+
+import { use } from "react";
+import type { MarketProfile } from "@/types";
+import { notFound } from "next/navigation";
+import { useActivity } from "@/hooks/useActivity";
+import { ActivityActions } from "@/components/dashboard/ActivityActions";
+import { cn, formatCurrency, formatNumber } from "@/lib/utils";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ClientOnly } from "@/components/ui/client-only";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
+import {
+  Globe,
+  TrendingUp,
+  Users,
+  Target,
+  Zap,
+  RefreshCw,
+  Shield,
+  AlertTriangle,
+  Lightbulb,
+} from "lucide-react";
+
+export default function MarketPage({
+  params,
+}: {
+  params: Promise<{ activityId: string }>;
+}) {
+  const { activityId } = use(params);
+  const activity = useActivity(activityId);
+  if (!activity) return notFound();
+
+  const market = null as MarketProfile | null;
+
+  const intensityConfig = {
+    low: { label: "Bassa", color: "text-emerald-400", bg: "bg-emerald-500/10 ring-emerald-500/20" },
+    medium: { label: "Media", color: "text-amber-400", bg: "bg-amber-500/10 ring-amber-500/20" },
+    high: { label: "Alta", color: "text-orange-400", bg: "bg-orange-500/10 ring-orange-500/20" },
+    very_high: { label: "Molto Alta", color: "text-red-400", bg: "bg-red-500/10 ring-red-500/20" },
+  };
+
+  const marketSizeData = market
+    ? [
+        { name: "TAM", value: market.marketSize, color: "#6366f1" },
+        { name: "SAM", value: market.servicableMarket, color: "#8b5cf6" },
+        { name: "SOM", value: market.targetMarket, color: "#a78bfa" },
+      ]
+    : [];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold">{activity.name} — Market Intelligence</h2>
+          <p className="text-sm text-muted-foreground">
+            Analisi mercato, trend e competitor
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <ActivityActions activity={activity} />
+          <Button variant="outline" size="sm">
+            <RefreshCw className="h-3.5 w-3.5" />
+            Aggiorna dati
+          </Button>
+        </div>
+      </div>
+
+      {!market ? (
+        <Card className="py-16 text-center">
+          <Globe className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+          <p className="text-muted-foreground mb-2">
+            Nessun profilo di mercato configurato
+          </p>
+          <p className="text-xs text-muted-foreground mb-4">
+            Aggiungi un profilo mercato per attivare l&apos;analisi competitiva e i trend
+          </p>
+          <Button>
+            <Plus className="h-4 w-4" />
+            Configura mercato
+          </Button>
+        </Card>
+      ) : (
+        <>
+          {/* Market size overview */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              {
+                label: "TAM — Total Addressable Market",
+                value: market.marketSize,
+                desc: "Dimensione totale del mercato",
+                icon: Globe,
+                color: "#6366f1",
+              },
+              {
+                label: "SAM — Serviceable Addressable",
+                value: market.servicableMarket,
+                desc: "Mercato raggiungibile",
+                icon: Target,
+                color: "#8b5cf6",
+              },
+              {
+                label: "SOM — Serviceable Obtainable",
+                value: market.targetMarket,
+                desc: "Quota obiettivo",
+                icon: Users,
+                color: "#a78bfa",
+              },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="rounded-xl border border-border/50 bg-card p-5"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <item.icon
+                    className="h-5 w-5"
+                    style={{ color: item.color }}
+                  />
+                  <span
+                    className="text-[10px] font-bold uppercase tracking-wider"
+                    style={{ color: item.color }}
+                  >
+                    {item.label.split("—")[0].trim()}
+                  </span>
+                </div>
+                <p className="text-2xl font-black tabular-nums">
+                  {formatCurrency(item.value, "EUR", true)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Key metrics */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="kpi-card">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-emerald-400" />
+                <span className="data-label">Crescita mercato</span>
+              </div>
+              <span className="text-2xl font-bold text-emerald-400">
+                +{market.growthRate}%
+              </span>
+              <span className="text-xs text-muted-foreground">anno/anno</span>
+            </div>
+
+            <div className="kpi-card">
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-muted-foreground" />
+                <span className="data-label">Competizione</span>
+              </div>
+              <span
+                className={cn(
+                  "text-2xl font-bold",
+                  intensityConfig[market.competitorIntensity as keyof typeof intensityConfig]?.color
+                )}
+              >
+                {intensityConfig[market.competitorIntensity as keyof typeof intensityConfig]?.label}
+              </span>
+            </div>
+
+            <div className="kpi-card">
+              <div className="flex items-center gap-2">
+                <Target className="h-4 w-4 text-muted-foreground" />
+                <span className="data-label">Prezzo medio mercato</span>
+              </div>
+              <span className="text-2xl font-bold">
+                {formatCurrency(market.pricingAverage)}
+              </span>
+            </div>
+
+            <div className="kpi-card">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span className="data-label">Quota potenziale</span>
+              </div>
+              <span className="text-2xl font-bold">
+                {((market.targetMarket / market.servicableMarket) * 100).toFixed(1)}%
+              </span>
+              <span className="text-xs text-muted-foreground">del SAM</span>
+            </div>
+          </div>
+
+          {/* TAM/SAM/SOM chart */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Market Size Breakdown</CardTitle>
+              </CardHeader>
+              <ClientOnly fallback={<div className="h-[180px] bg-secondary/20 rounded animate-pulse" />}>
+              <ResponsiveContainer width="100%" height={180}>
+                <BarChart
+                  data={marketSizeData}
+                  layout="vertical"
+                  margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
+                >
+                  <XAxis
+                    type="number"
+                    tick={{ fontSize: 10, fill: "#64748b" }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v: number) =>
+                      v >= 1_000_000_000
+                        ? `${(v / 1_000_000_000).toFixed(1)}B`
+                        : v >= 1_000_000
+                        ? `${(v / 1_000_000).toFixed(0)}M`
+                        : `${(v / 1000).toFixed(0)}K`
+                    }
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    tick={{ fontSize: 11, fill: "#94a3b8" }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={35}
+                  />
+                  <Tooltip
+                    formatter={(value: number) =>
+                      formatCurrency(value, "EUR", true)
+                    }
+                    contentStyle={{
+                      background: "hsl(222 47% 7%)",
+                      border: "1px solid hsl(222 40% 12%)",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                    }}
+                  />
+                  <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={28}>
+                    {marketSizeData.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} fillOpacity={0.8} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              </ClientOnly>
+            </Card>
+
+            {/* Barriers to entry */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-amber-400" />
+                  Barriere all&apos;Ingresso
+                </CardTitle>
+              </CardHeader>
+              <div className="space-y-2">
+                {market.barriersToEntry.map((barrier, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-3 p-2.5 rounded-lg bg-secondary/30"
+                  >
+                    <div className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" />
+                    <span className="text-xs">{barrier}</span>
+                  </div>
+                ))}
+                {market.barriersToEntry.length === 0 && (
+                  <p className="text-xs text-muted-foreground">Nessuna barriera identificata</p>
+                )}
+              </div>
+            </Card>
+          </div>
+
+          {/* Key Trends */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-primary" />
+                Trend Chiave di Mercato
+              </CardTitle>
+              <Button variant="ghost" size="sm">
+                <Zap className="h-3.5 w-3.5" />
+                AI Analysis
+              </Button>
+            </CardHeader>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {market.keyTrends.map((trend, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-3 p-3 rounded-lg bg-secondary/30 border border-border/30"
+                >
+                  <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/20 shrink-0">
+                    <Lightbulb className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                  <p className="text-xs leading-relaxed">{trend}</p>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Activity context */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Posizionamento {activity.name}</CardTitle>
+            </CardHeader>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground mb-2">Settori target</p>
+                <div className="flex flex-wrap gap-2">
+                  {activity.geography.map((geo) => (
+                    <Badge key={geo} variant="info">{geo}</Badge>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground mb-2">Business model</p>
+                <div className="flex flex-wrap gap-2">
+                  {activity.businessModels.map((bm) => (
+                    <Badge key={bm} variant="default">{bm.toUpperCase()}</Badge>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground mb-2">Stage</p>
+                <Badge
+                  variant={
+                    activity.lifecycleStage === "growth"
+                      ? "success"
+                      : activity.lifecycleStage === "validation"
+                      ? "warning"
+                      : "info"
+                  }
+                >
+                  {activity.lifecycleStage}
+                </Badge>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground mb-2">Intensità competizione</p>
+                <span
+                  className={cn(
+                    "badge",
+                    intensityConfig[market.competitorIntensity as keyof typeof intensityConfig]?.bg
+                  )}
+                >
+                  {intensityConfig[market.competitorIntensity as keyof typeof intensityConfig]?.label}
+                </span>
+              </div>
+            </div>
+          </Card>
+        </>
+      )}
+    </div>
+  );
+}
+
+function Plus({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M5 12h14" />
+      <path d="M12 5v14" />
+    </svg>
+  );
+}
