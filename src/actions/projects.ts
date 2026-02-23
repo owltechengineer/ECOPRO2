@@ -81,6 +81,21 @@ const { data, error } = await supabase
   return ok((data ?? []).map(mapProject));
 }
 
+/** Restituisce progetti per più activities (per dashboard globale) */
+export async function getProjectsForActivities(
+  activityIds: string[]
+): Promise<ActionResult<Project[]>> {
+  if (activityIds.length === 0) return ok([]);
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("projects")
+    .select("*")
+    .in("activity_id", activityIds)
+    .order("created_at", { ascending: false });
+  if (error) return fail(error.message);
+  return ok((data ?? []).map(mapProject));
+}
+
 // ─────────────────────────────────────────────
 // UPDATE
 // ─────────────────────────────────────────────

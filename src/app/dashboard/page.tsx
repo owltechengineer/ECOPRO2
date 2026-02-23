@@ -2,7 +2,9 @@
 
 import { useAppStore } from "@/store/app.store";
 import { ActivityForm } from "@/components/forms/ActivityForm";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { getProjectsForActivities } from "@/actions/projects";
 import { formatCurrency, formatPercent, getScoreColor } from "@/lib/utils";
 import { ActivityCard } from "@/components/dashboard/ActivityCard";
 import { AlertPanel } from "@/components/dashboard/AlertPanel";
@@ -73,6 +75,7 @@ function CustomTooltip({
 }
 
 export default function GlobalDashboardPage() {
+  const pathname = usePathname();
   const activities = useAppStore((s) => s.activities);
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -97,7 +100,22 @@ export default function GlobalDashboardPage() {
   const criticalTasks: import("@/types").Task[] = [];
   const overdueTasks: import("@/types").Task[] = [];
 
-  // Chart data (use store activities, fallback to kpis from mock for seeded ones)
+  const [projectsByActivity, setProjectsByActivity] = useState<Record<string, number>>({});
+  useEffect(() => {
+    if (activities.length === 0) return;
+    getProjectsForActivities(activities.map((a) => a.id)).then((r) => {
+      if (!r.ok) return;
+      const counts: Record<string, number> = {};
+      r.data.forEach((p) => {
+        if (["in_progress", "planning"].includes(p.status)) {
+          counts[p.activityId] = (counts[p.activityId] ?? 0) + 1;
+        }
+      });
+      setProjectsByActivity(counts);
+    });
+  }, [pathname, activities.length, activities.map((a) => a.id).join(",")]);
+
+  // Chart data (use store activities)
   const revenueByActivity = activities.filter((a) => a.kpis).map((a) => ({
     name: a.name,
     Revenue: a.kpis!.totalRevenue,
@@ -192,7 +210,11 @@ export default function GlobalDashboardPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {activities.map((activity) => (
-              <ActivityCard key={activity.id} activity={activity} />
+              <ActivityCard
+                key={activity.id}
+                activity={activity}
+                activeProjectsCount={projectsByActivity[activity.id] ?? 0}
+              />
             ))}
             {activities.length === 0 && (
               <div className="col-span-2 py-12 text-center rounded-xl border border-dashed border-border/50">

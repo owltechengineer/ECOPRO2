@@ -1,3 +1,7 @@
+# ECOPRO2 — Ignored files
+# .env.local è ignorato (contiene SUPABASE_SERVICE_ROLE_KEY)
+# .env.local.example è tracciato come template
+
 # Next.js
 .next/
 out/
@@ -7,6 +11,7 @@ node_modules/
 
 # Build
 dist/
+*.tsbuildinfo
 
 # Env (keep .env.local.example, exclude secrets)
 .env.local
@@ -19,3 +24,8 @@ dist/
 # Supabase local
 supabase/.branches/
 supabase/.temp/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/

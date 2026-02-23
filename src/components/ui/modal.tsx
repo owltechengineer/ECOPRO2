@@ -61,6 +61,9 @@ export function Modal({
 
       {/* Panel */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
         className={cn(
           "relative w-full rounded-2xl border border-border/60 bg-card shadow-2xl",
           "flex flex-col max-h-[90vh] animate-slide-up",
@@ -70,7 +73,7 @@ export function Modal({
         {/* Header */}
         <div className="flex items-start justify-between p-6 pb-4 shrink-0">
           <div>
-            <h2 className="text-base font-bold text-foreground">{title}</h2>
+            <h2 id="modal-title" className="text-base font-bold text-foreground">{title}</h2>
             {description && (
               <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
             )}

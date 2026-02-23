@@ -5,7 +5,6 @@ import { cn, formatCurrency, getScoreColor, getScoreGradient } from "@/lib/utils
 import type { Activity, ActivityKPIs } from "@/types";
 import { TrendingUp, TrendingDown, Clock, AlertTriangle, Plus } from "lucide-react";
 import { useAppStore } from "@/store/app.store";
-import { getAlertsByActivity, getProjectsByActivity } from "@/data/mock";
 
 // Default KPIs for activities without real data yet
 const EMPTY_KPIS: ActivityKPIs = {
@@ -33,19 +32,16 @@ const EMPTY_KPIS: ActivityKPIs = {
 
 interface ActivityCardProps {
   activity: Activity;
+  /** Numero progetti attivi (in_progress, planning) — opzionale */
+  activeProjectsCount?: number;
+  /** Numero alert critici non letti — opzionale */
+  criticalAlertsCount?: number;
 }
 
-export function ActivityCard({ activity }: ActivityCardProps) {
+export function ActivityCard({ activity, activeProjectsCount = 0, criticalAlertsCount = 0 }: ActivityCardProps) {
   const { setCurrentActivity } = useAppStore();
   const kpis: ActivityKPIs = activity.kpis ?? EMPTY_KPIS;
   const hasData = !!activity.kpis;
-
-  const alerts = getAlertsByActivity(activity.id).filter((a) => !a.isDismissed);
-  const projects = getProjectsByActivity(activity.id);
-  const activeProjects = projects.filter((p) =>
-    ["in_progress", "planning"].includes(p.status)
-  );
-  const criticalAlerts = alerts.filter((a) => a.severity === "critical");
 
   return (
     <Link
@@ -190,13 +186,13 @@ export function ActivityCard({ activity }: ActivityCardProps) {
           {/* Footer */}
           <div className="flex items-center justify-between text-[11px] text-muted-foreground border-t border-border/30 pt-3">
             <span>
-              {activeProjects.length} progett{activeProjects.length === 1 ? "o" : "i"} attiv{activeProjects.length === 1 ? "o" : "i"}
+              {activeProjectsCount} progett{activeProjectsCount === 1 ? "o" : "i"} attiv{activeProjectsCount === 1 ? "o" : "i"}
             </span>
 
-            {criticalAlerts.length > 0 && (
+            {criticalAlertsCount > 0 && (
               <div className="flex items-center gap-1 text-red-400 font-medium">
                 <AlertTriangle className="h-3 w-3" />
-                <span>{criticalAlerts.length} critico</span>
+                <span>{criticalAlertsCount} critico</span>
               </div>
             )}
 

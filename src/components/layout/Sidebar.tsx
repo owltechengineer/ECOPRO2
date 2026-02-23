@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/app.store";
 import { ActivityForm } from "@/components/forms/ActivityForm";
@@ -84,6 +85,12 @@ export function Sidebar() {
     useAppStore();
 
   const [createOpen, setCreateOpen] = useState(false);
+
+  // Sync currentActivityId from URL when navigating to /dashboard/[activityId]
+  useEffect(() => {
+    const match = pathname.match(/^\/dashboard\/([a-f0-9-]+)(?:\/|$)/);
+    if (match) setCurrentActivity(match[1]);
+  }, [pathname, setCurrentActivity]);
 
   return (
     <>

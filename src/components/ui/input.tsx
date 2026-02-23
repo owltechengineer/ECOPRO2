@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { type InputHTMLAttributes, forwardRef } from "react";
+import { type InputHTMLAttributes, forwardRef, useId } from "react";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -8,13 +8,16 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, hint, className, ...props }, ref) => {
+  ({ label, error, hint, className, id: idProp, ...props }, ref) => {
+    const generatedId = useId();
+    const id = idProp ?? generatedId;
     return (
       <div className="flex flex-col gap-1.5">
         {label && (
-          <label className="text-xs font-medium text-foreground/80">{label}</label>
+          <label htmlFor={id} className="text-xs font-medium text-foreground/80">{label}</label>
         )}
         <input
+          id={id}
           ref={ref}
           onFocus={(e) => {
             // Select all on focus for number inputs to avoid append bug

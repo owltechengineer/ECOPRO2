@@ -68,7 +68,58 @@ export async function getActivities(): Promise<ActionResult<Activity[]>> {
     .order("created_at", { ascending: false });
 
   if (error) return fail(error.message);
-  return ok((data ?? []).map(mapActivity));
+  const activities = (data ?? []).map(mapActivity);
+
+  const { data: summaryData } = await supabase
+    .from("activity_financial_summary")
+    .select("activity_id, total_revenue, total_costs, gross_margin, capital_invested");
+
+  const summaryMap = new Map<string, { total_revenue: number; total_costs: number; gross_margin: number; capital_invested: number }>();
+  (summaryData ?? []).forEach((r: { activity_id: string; total_revenue: number; total_costs: number; gross_margin: number; capital_invested: number }) => {
+    summaryMap.set(r.activity_id, {
+      total_revenue: Number(r.total_revenue),
+      total_costs: Number(r.total_costs),
+      gross_margin: Number(r.gross_margin),
+      capital_invested: Number(r.capital_invested),
+    });
+  });
+
+  const enriched = activities.map((a) => {
+    const s = summaryMap.get(a.id);
+    if (!s || (s.total_revenue === 0 && s.total_costs === 0)) return a;
+    const grossMarginPct = s.total_revenue > 0 ? (s.gross_margin / s.total_revenue) * 100 : 0;
+    const roi = s.capital_invested > 0 ? (s.gross_margin / s.capital_invested) * 100 : 0;
+    const burnRate = 12 > 0 ? s.total_costs / 12 : 0;
+    const runwayMonths = burnRate > 0 ? s.gross_margin / burnRate : Infinity;
+    const healthScore = Math.min(100, Math.max(0, 50 + roi * 0.5 + grossMarginPct * 0.3));
+    return {
+      ...a,
+      kpis: {
+        totalRevenue: s.total_revenue,
+        totalCosts: s.total_costs,
+        grossMargin: s.gross_margin,
+        grossMarginPct,
+        netMargin: s.gross_margin,
+        netMarginPct: grossMarginPct,
+        ebitda: s.gross_margin,
+        ebitdaPct: grossMarginPct,
+        roi,
+        paybackPeriodMonths: 0,
+        cashFlow: s.gross_margin,
+        burnRate,
+        runwayMonths,
+        revenueGrowthRate: 0,
+        costVariance: 0,
+        revenueVariance: 0,
+        productivityIndex: 0,
+        healthScore,
+        budgetUtilizationPct: 0,
+        period: "",
+      },
+    };
+  });
+
+  return ok(enriched);
 }
 
 // ─────────────────────────────────────────────

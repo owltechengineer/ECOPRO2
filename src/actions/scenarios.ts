@@ -258,6 +258,25 @@ function computeSummary(
 // MAPPER
 // ─────────────────────────────────────────────
 
+function normalizeProjections(raw: unknown[]): MonthlyProjection[] {
+  return (raw ?? []).map((p: Record<string, unknown>) => {
+    const rev = Number(p.revenue ?? 0);
+    const cost = Number(p.costs ?? 0);
+    const margin = Number(p.margin ?? rev - cost);
+    const cumFromRevCost = Number(p.cumulativeRevenue ?? 0) - Number(p.cumulativeCosts ?? 0);
+    const cum = Number(p.cumulativeCashFlow ?? (Number.isFinite(cumFromRevCost) ? cumFromRevCost : margin));
+    return {
+      month: String(p.month ?? ""),
+      revenue: rev,
+      costs: cost,
+      margin,
+      cashFlow: margin,
+      cumulativeCashFlow: cum,
+      customers: Number(p.customers ?? 0),
+    };
+  });
+}
+
 function mapScenario(row: Record<string, unknown>): ForecastScenario {
   return {
     id: row.id as string,
@@ -267,7 +286,7 @@ function mapScenario(row: Record<string, unknown>): ForecastScenario {
     description: row.description as string | undefined,
     isActive: row.is_active as boolean,
     assumptions: row.assumptions as ScenarioAssumptions,
-    projections: (row.projections as MonthlyProjection[]) ?? [],
+    projections: normalizeProjections((row.projections as unknown[]) ?? []),
     projectedRevenue: Number(row.projected_revenue),
     projectedCosts: Number(row.projected_costs),
     projectedMargin: Number(row.projected_margin),
