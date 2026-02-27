@@ -842,12 +842,14 @@ export default function ProjectsPage({
         open={createProjectOpen}
         onClose={() => setCreateProjectOpen(false)}
         activityId={activityId}
+        activity={activity}
         onSuccess={(p) => setProjects((prev) => [p, ...prev])}
       />
       <ProjectForm
         open={!!editProject}
         onClose={() => setEditProject(null)}
         activityId={activityId}
+        activity={activity}
         project={editProject ?? undefined}
         onSuccess={(p) => setProjects((prev) => prev.map((x) => x.id === p.id ? p : x))}
       />

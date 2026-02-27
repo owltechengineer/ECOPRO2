@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import type { Project, ProjectMethodology, ProjectPriority, ProjectStatus } from "@/types";
+import type { Activity, Project, ProjectMethodology, ProjectPriority, ProjectStatus } from "@/types";
 import { createProject, updateProject } from "@/actions/projects";
 import type { CreateProjectInput } from "@/actions/projects";
 
@@ -53,9 +53,16 @@ interface FormState {
   tags: string;
 }
 
-function defaultState(project?: Project): FormState {
+function defaultState(project?: Project, activity?: Activity | null): FormState {
   const today = new Date().toISOString().split("T")[0];
   const inThreeMonths = new Date(Date.now() + 90 * 86400000).toISOString().split("T")[0];
+
+  // Pre-fill from activity when creating new project (no existing project)
+  const defaultBudget =
+    !project && activity?.capitalInvested
+      ? Math.round(activity.capitalInvested * 0.1).toString()
+      : "0";
+
   return {
     name: project?.name ?? "",
     description: project?.description ?? "",
@@ -64,8 +71,8 @@ function defaultState(project?: Project): FormState {
     priority: project?.priority ?? "medium",
     startDate: project?.startDate ?? today,
     endDate: project?.endDate ?? inThreeMonths,
-    budgetEstimated: project?.budgetEstimated?.toString() ?? "0",
-    revenueEstimated: project?.revenueEstimated?.toString() ?? "0",
+    budgetEstimated: project?.budgetEstimated?.toString() ?? defaultBudget,
+    revenueEstimated: project?.revenueEstimated?.toString() ?? defaultBudget,
     budgetActual: project?.budgetActual?.toString() ?? "0",
     revenueActual: project?.revenueActual?.toString() ?? "0",
     completionPct: project?.completionPct?.toString() ?? "0",
@@ -77,19 +84,20 @@ interface ProjectFormProps {
   open: boolean;
   onClose: () => void;
   activityId: string;
+  activity?: Activity | null;
   project?: Project;
   onSuccess?: (project: Project) => void;
 }
 
-export function ProjectForm({ open, onClose, activityId, project, onSuccess }: ProjectFormProps) {
+export function ProjectForm({ open, onClose, activityId, activity, project, onSuccess }: ProjectFormProps) {
   const router = useRouter();
   const isEdit = !!project;
-  const [form, setForm] = useState<FormState>(() => defaultState(project));
+  const [form, setForm] = useState<FormState>(() => defaultState(project, activity));
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (open) setForm(defaultState(project));
-  }, [open, project]);
+    if (open) setForm(defaultState(project, activity));
+  }, [open, project, activity]);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
@@ -112,6 +120,10 @@ export function ProjectForm({ open, onClose, activityId, project, onSuccess }: P
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!activityId?.trim()) {
+      toast.error("Activity non valida. Ricarica la pagina.");
+      return;
+    }
     if (!validate()) return;
     setLoading(true);
 
@@ -166,7 +178,13 @@ export function ProjectForm({ open, onClose, activityId, project, onSuccess }: P
       open={open}
       onClose={onClose}
       title={isEdit ? `Modifica progetto` : "Nuovo Progetto"}
-      description={isEdit ? project?.name : "Aggiungi un nuovo progetto a questa activity"}
+      description={
+        isEdit
+          ? project?.name
+          : activity
+            ? `Aggiungi un nuovo progetto a ${activity.name}`
+            : "Aggiungi un nuovo progetto a questa attività"
+      }
       size="lg"
       footer={
         <>
