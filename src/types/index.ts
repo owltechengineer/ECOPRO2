@@ -407,6 +407,8 @@ export interface MarketProfile {
   growthRate: number;           // % annual
   competitorIntensity: "low" | "medium" | "high" | "very_high";
   pricingAverage: number;
+  /** Contesto del prezzo medio, es. "per licenza SaaS/mese" */
+  pricingLabel?: string;
   barriersToEntry: string[];
   keyTrends: string[];
   lastUpdated: string;

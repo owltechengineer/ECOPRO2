@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Modal } from "@/components/ui/modal";
@@ -57,6 +57,10 @@ export function ScenarioForm({ open, onClose, activityId, scenario, onSuccess }:
   const isEdit = !!scenario;
   const [form, setForm] = useState<FormState>(() => defaultState(scenario));
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (open) setForm(defaultState(scenario));
+  }, [open, scenario]);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {

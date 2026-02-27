@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Modal } from "@/components/ui/modal";
@@ -60,6 +60,14 @@ function defaultState(task?: Task, defaultProjectId?: string): FormState {
   };
 }
 
+export interface TaskFormInitialValues {
+  name?: string;
+  description?: string;
+  priority?: ProjectPriority;
+  estimatedHours?: number;
+  deadline?: string;
+}
+
 interface TaskFormProps {
   open: boolean;
   onClose: () => void;
@@ -67,7 +75,24 @@ interface TaskFormProps {
   projects: Project[];
   task?: Task;
   defaultProjectId?: string;
+  /** Precompila il form in modalità creazione (es. da raccomandazione AI) */
+  initialValues?: TaskFormInitialValues;
   onSuccess?: (task: Task) => void;
+}
+
+function mergeInitialValues(
+  base: FormState,
+  initial?: TaskFormInitialValues
+): FormState {
+  if (!initial) return base;
+  return {
+    ...base,
+    name: initial.name ?? base.name,
+    description: initial.description ?? base.description,
+    priority: initial.priority ?? base.priority,
+    estimatedHours: initial.estimatedHours?.toString() ?? base.estimatedHours,
+    deadline: initial.deadline ?? base.deadline,
+  };
 }
 
 export function TaskForm({
@@ -77,12 +102,20 @@ export function TaskForm({
   projects,
   task,
   defaultProjectId,
+  initialValues,
   onSuccess,
 }: TaskFormProps) {
   const router = useRouter();
   const isEdit = !!task;
-  const [form, setForm] = useState<FormState>(() => defaultState(task, defaultProjectId));
+  const [form, setForm] = useState<FormState>(() =>
+    mergeInitialValues(defaultState(task, defaultProjectId), !task ? initialValues : undefined)
+  );
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const base = defaultState(task, defaultProjectId);
+    setForm(mergeInitialValues(base, !task ? initialValues : undefined));
+  }, [open, task, defaultProjectId, initialValues]);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {

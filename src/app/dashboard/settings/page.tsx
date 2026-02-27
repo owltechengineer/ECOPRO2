@@ -297,16 +297,21 @@ export default function SettingsPage() {
           </div>
           <div className="p-4 rounded-xl bg-secondary/30 border border-border/30">
             <div className="flex items-center gap-2 mb-2">
-              <div className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-              <p className="text-sm font-semibold">OpenAI</p>
-              <Badge variant="warning" size="sm">Da configurare</Badge>
+              <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              <p className="text-sm font-semibold">Groq AI</p>
+              <Badge variant="success" size="sm">Gratuito</Badge>
             </div>
             <p className="text-xs text-muted-foreground mb-3">
-              Necessario per AI Reports e suggerimenti strategici
+              Per AI Reports e Market Intelligence. 14.400 req/giorno gratis.
             </p>
-            <Button size="sm" variant="outline">
-              Configura API Key
-            </Button>
+            <a href="https://console.groq.com" target="_blank" rel="noopener noreferrer">
+              <Button size="sm" variant="outline">
+                Ottieni API Key
+              </Button>
+            </a>
+            <p className="text-[10px] text-muted-foreground mt-2">
+              Aggiungi GROQ_API_KEY in .env.local
+            </p>
           </div>
         </div>
       </Card>

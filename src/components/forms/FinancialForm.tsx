@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Modal } from "@/components/ui/modal";
@@ -81,6 +81,10 @@ export function FinancialForm({ open, onClose, activityId, projects = [], record
   const isEdit = !!record;
   const [form, setForm] = useState<FormState>(() => defaultState(record));
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (open) setForm(defaultState(record));
+  }, [open, record]);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {

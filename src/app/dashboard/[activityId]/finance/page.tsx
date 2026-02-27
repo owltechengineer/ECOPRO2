@@ -252,7 +252,33 @@ export default function FinancePage({
     getFinancialRecords(activityId).then((r) => { if (r.ok) setRecords(r.data); });
   }, [activityId]);
 
-  const cashflow: { month: string; income: number; expenses: number; net: number }[] = [];
+  // Compute monthly cashflow from records (last 12 months)
+  const cashflow = (() => {
+    const now = new Date();
+    const months: Record<string, { income: number; expenses: number }> = {};
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      months[key] = { income: 0, expenses: 0 };
+    }
+    records.forEach((r) => {
+      const month = r.date.slice(0, 7);
+      if (!months[month]) months[month] = { income: 0, expenses: 0 };
+      if (r.type === "revenue" || r.type === "financing") {
+        months[month].income += r.amount;
+      } else {
+        months[month].expenses += r.amount;
+      }
+    });
+    return Object.entries(months)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, { income, expenses }]) => ({
+        month,
+        income,
+        expenses,
+        net: income - expenses,
+      }));
+  })();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editRecord, setEditRecord] = useState<(typeof records)[0] | null>(null);

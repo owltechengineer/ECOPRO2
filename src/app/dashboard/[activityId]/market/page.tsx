@@ -1,11 +1,13 @@
 "use client";
 
-import { use } from "react";
+import { use, useState, useCallback } from "react";
 import type { MarketProfile } from "@/types";
 import { notFound } from "next/navigation";
 import { useActivity } from "@/hooks/useActivity";
 import { ActivityActions } from "@/components/dashboard/ActivityActions";
-import { cn, formatCurrency, formatNumber } from "@/lib/utils";
+import { getMarketProfile } from "@/actions/market";
+import { generateAIMarketProfile } from "@/actions/ai-market";
+import { cn, formatCurrency } from "@/lib/utils";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,9 +29,30 @@ import {
   Zap,
   RefreshCw,
   Shield,
-  AlertTriangle,
   Lightbulb,
+  AlertTriangle,
+  Loader2,
 } from "lucide-react";
+import { getSectorProfile } from "@/data/sector-market-profiles";
+import type { Activity } from "@/types";
+
+function buildSyntheticProfile(activityId: string, activity: Pick<Activity, "sector" | "name">): MarketProfile {
+  const sectorProfile = getSectorProfile(activity.sector, activity.name);
+  return {
+    id: `syn-${activityId}`,
+    activityId,
+    marketSize: sectorProfile.marketSize,
+    servicableMarket: sectorProfile.servicableMarket,
+    targetMarket: sectorProfile.targetMarket,
+    growthRate: sectorProfile.growthRate,
+    competitorIntensity: sectorProfile.competitorIntensity,
+    pricingAverage: sectorProfile.pricingAverage,
+    pricingLabel: sectorProfile.pricingLabel,
+    barriersToEntry: sectorProfile.barriersToEntry,
+    keyTrends: sectorProfile.keyTrends,
+    lastUpdated: new Date().toISOString(),
+  };
+}
 
 export default function MarketPage({
   params,
@@ -40,7 +63,41 @@ export default function MarketPage({
   const activity = useActivity(activityId);
   if (!activity) return notFound();
 
-  const market = null as MarketProfile | null;
+  const [market, setMarket] = useState<MarketProfile | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const runAnalysis = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const aiResult = await generateAIMarketProfile(activityId, {
+        name: activity.name,
+        sector: activity.sector,
+        description: activity.description,
+        businessModels: activity.businessModels,
+        geography: activity.geography,
+      });
+      if (aiResult.ok) {
+        setMarket(aiResult.data);
+      } else {
+        const dbResult = await getMarketProfile(activityId);
+        if (dbResult.ok && dbResult.data) {
+          setMarket(dbResult.data);
+        } else {
+          setMarket(buildSyntheticProfile(activityId, activity));
+          if (aiResult.error?.includes("GROQ")) setError(aiResult.error);
+        }
+      }
+    } catch {
+      const dbResult = await getMarketProfile(activityId);
+      if (dbResult.ok && dbResult.data) setMarket(dbResult.data);
+      else setMarket(buildSyntheticProfile(activityId, activity));
+      setError("Connessione non disponibile");
+    } finally {
+      setLoading(false);
+    }
+  }, [activityId, activity]);
 
   const intensityConfig = {
     low: { label: "Bassa", color: "text-emerald-400", bg: "bg-emerald-500/10 ring-emerald-500/20" },
@@ -69,29 +126,51 @@ export default function MarketPage({
         </div>
         <div className="flex items-center gap-2">
           <ActivityActions activity={activity} />
-          <Button variant="outline" size="sm">
-            <RefreshCw className="h-3.5 w-3.5" />
-            Aggiorna dati
-          </Button>
+          {market && (
+            <Button variant="outline" size="sm" disabled={loading} onClick={runAnalysis}>
+              {loading ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5" />
+              )}
+              Nuova analisi
+            </Button>
+          )}
         </div>
       </div>
 
-      {!market ? (
+      {error && market && (
+        <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <Card className="py-16 text-center">
+          <Loader2 className="h-12 w-12 text-muted-foreground/50 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Analisi mercato in corso...</p>
+          <p className="text-xs text-muted-foreground mt-1">Lettura dati {activity.name}</p>
+        </Card>
+      ) : !market ? (
         <Card className="py-16 text-center">
           <Globe className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
           <p className="text-muted-foreground mb-2">
-            Nessun profilo di mercato configurato
+            Analisi mercato su richiesta
           </p>
-          <p className="text-xs text-muted-foreground mb-4">
-            Aggiungi un profilo mercato per attivare l&apos;analisi competitiva e i trend
+          <p className="text-xs text-muted-foreground mb-6 max-w-md mx-auto">
+            Clicca per avviare l&apos;analisi del mercato attuale. L&apos;AI legge le informazioni dell&apos;attività e genera una stima specifica.
           </p>
-          <Button>
-            <Plus className="h-4 w-4" />
-            Configura mercato
+          <Button size="lg" onClick={runAnalysis}>
+            <Zap className="h-4 w-4" />
+            Analizza mercato ora
           </Button>
         </Card>
       ) : (
         <>
+          <p className="text-xs text-muted-foreground">
+            Analisi generata il {new Date(market.lastUpdated).toLocaleString("it-IT", { dateStyle: "medium", timeStyle: "short" })}
+          </p>
           {/* Market size overview */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
@@ -177,6 +256,11 @@ export default function MarketPage({
               <span className="text-2xl font-bold">
                 {formatCurrency(market.pricingAverage)}
               </span>
+              {market.pricingLabel && (
+                <span className="text-[10px] text-muted-foreground leading-tight block mt-0.5">
+                  {market.pricingLabel}
+                </span>
+              )}
             </div>
 
             <div className="kpi-card">

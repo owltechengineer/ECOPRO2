@@ -131,13 +131,18 @@ function ScenarioCard({
           </Badge>
         </div>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
-          {!scenario.isActive && onSetActive && (
+          {onSetActive && (
             <button
               onClick={() => onSetActive(scenario.id)}
-              className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
-              title="Imposta attivo"
+              className={cn(
+                "flex h-6 w-6 items-center justify-center rounded transition-colors",
+                scenario.isActive
+                  ? "text-amber-400 bg-amber-500/20"
+                  : "text-muted-foreground hover:text-amber-400 hover:bg-amber-500/10"
+              )}
+              title={scenario.isActive ? "Scenario attivo — usato come riferimento per KPI e forecast" : "Clicca per impostare come scenario attivo (riferimento per KPI)"}
             >
-              <Star className="h-3 w-3" />
+              <Star className={cn("h-3 w-3", scenario.isActive && "fill-amber-400")} />
             </button>
           )}
           {onEdit && (

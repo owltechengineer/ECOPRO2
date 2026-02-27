@@ -1,10 +1,16 @@
 "use client";
 
-import { use, useState } from "react";
-import type { AIReport } from "@/types";
+import { use, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import type { AIReport, AIRecommendation } from "@/types";
 import { notFound } from "next/navigation";
+import toast from "react-hot-toast";
 import { useActivity } from "@/hooks/useActivity";
 import { ActivityActions } from "@/components/dashboard/ActivityActions";
+import { getProjects } from "@/actions/projects";
+import { generateAIReport } from "@/actions/ai-reports";
+import { TaskForm, type TaskFormInitialValues } from "@/components/forms/TaskForm";
+import { Modal } from "@/components/ui/modal";
 import { cn, formatDate, getSeverityBg, getSeverityColor } from "@/lib/utils";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,12 +22,14 @@ import {
   TrendingUp,
   Lightbulb,
   Target,
-  Clock,
   ChevronDown,
   ChevronUp,
   RefreshCw,
   Sparkles,
+  CheckSquare,
+  Search,
 } from "lucide-react";
+import type { Project } from "@/types";
 
 const AI_PROMPTS = [
   {
@@ -74,6 +82,109 @@ const TIMEFRAME_LABELS: Record<string, string> = {
   long_term: "Lungo termine (6+ mesi)",
 };
 
+function deadlineFromTimeframe(timeframe: AIRecommendation["timeframe"]): string {
+  const d = new Date();
+  switch (timeframe) {
+    case "immediate": d.setDate(d.getDate() + 14); break;
+    case "short_term": d.setMonth(d.getMonth() + 1); break;
+    case "medium_term": d.setMonth(d.getMonth() + 3); break;
+    case "long_term": d.setMonth(d.getMonth() + 6); break;
+    default: d.setMonth(d.getMonth() + 1);
+  }
+  return d.toISOString().split("T")[0];
+}
+
+function recToTaskInitial(rec: AIRecommendation): TaskFormInitialValues {
+  const effortHours = rec.effort === "low" ? 4 : rec.effort === "medium" ? 12 : 24;
+  return {
+    name: rec.title,
+    description: rec.description,
+    priority: rec.priority,
+    estimatedHours: effortHours,
+    deadline: deadlineFromTimeframe(rec.timeframe),
+  };
+}
+
+const PROMPT_INSIGHTS: Record<string, AIReport["insights"]> = {
+  strategic: [
+    { id: "i1", category: "Revenue", title: "Crescita potenziale", description: "Opportunità di espansione revenue del 15-25% con focus su segmenti high-value.", severity: "success", metric: "Growth", value: 18 },
+    { id: "i2", category: "Costi", title: "Ottimizzazione", description: "Riduzione costi indiretti possibile del 10% tramite automazione.", severity: "info", metric: "Savings", value: 10 },
+    { id: "i3", category: "Rischi", title: "Burn rate", description: "Monitorare runway e considerare round di finanziamento.", severity: "warning", metric: "Runway", value: 8 },
+  ],
+  project: [
+    { id: "i1", category: "Ritardi", title: "Progetti in sforamento", description: "2-3 progetti oltre la deadline. Priorità su deliverable critici.", severity: "warning", metric: "Overdue", value: 2 },
+    { id: "i2", category: "Risorse", title: "Allocazione", description: "Riprioritizzare ore su task ad alto impatto. Ridistribuzione possibile.", severity: "info", metric: "Hours", value: 12 },
+    { id: "i3", category: "Parallelizzazione", title: "Task indipendenti", description: "Opportunità di parallelizzare 4+ task non dipendenti.", severity: "success", metric: "Speed", value: 25 },
+  ],
+  market: [
+    { id: "i1", category: "Trend", title: "Crescita settore", description: "Mercato in espansione +12% annuo. Finestra di opportunità aperta.", severity: "success", metric: "Growth", value: 12 },
+    { id: "i2", category: "Competitor", title: "Posizionamento", description: "3-5 competitor diretti. Differenziazione su servizio e prezzo.", severity: "info", metric: "Share", value: 15 },
+    { id: "i3", category: "Marketing", title: "CAC", description: "Costo acquisizione cliente in linea. Ottimizzare canali organici.", severity: "info", metric: "CAC", value: 85 },
+  ],
+  finance: [
+    { id: "i1", category: "Cash flow", title: "Burn rate", description: "Runway attuale 8-10 mesi. Monitorare uscite ricorrenti.", severity: "warning", metric: "Months", value: 8 },
+    { id: "i2", category: "Break-even", title: "Previsione", description: "Break-even stimato in 12-18 mesi con trend attuale.", severity: "info", metric: "Months", value: 15 },
+    { id: "i3", category: "Costi", title: "Ottimizzazioni", description: "Potenziale risparmio 10-15% su fornitori e costi indiretti.", severity: "success", metric: "Savings", value: 12 },
+  ],
+  opportunities: [
+    { id: "i1", category: "Bandi", title: "PNRR", description: "Fondi digitalizzazione PMI disponibili. Scadenza trimestrale.", severity: "success", metric: "Funds", value: 1 },
+    { id: "i2", category: "Agevolazioni", title: "Credito R&D", description: "Credito d'imposta R&D fino al 20% per attività innovative.", severity: "info", metric: "Rate", value: 20 },
+    { id: "i3", category: "Fondi", title: "Regionali", description: "Bandi regionali per startup e innovazione. Verificare requisiti.", severity: "info", metric: "Open", value: 3 },
+  ],
+};
+
+const PROMPT_RECOMMENDATIONS: Record<string, AIReport["recommendations"]> = {
+  strategic: [
+    { id: "r1", title: "Definire metriche OKR chiare", description: "Implementare framework OKR per allineare team e priorità. Impatto su produttività stimato +20%.", priority: "high", estimatedImpact: "Alto", effort: "medium", timeframe: "short_term" },
+    { id: "r2", title: "Revisione contratti fornitori", description: "Rinegoziare contratti annuali per ridurre costi fissi. Potenziale risparmio 5-15%.", priority: "medium", estimatedImpact: "Medio", effort: "low", timeframe: "immediate" },
+    { id: "r3", title: "Accelerare go-to-market", description: "Ridurre time-to-market con focus su MVP e early adopters.", priority: "high", estimatedImpact: "Alto", effort: "high", timeframe: "medium_term" },
+  ],
+  project: [
+    { id: "r1", title: "Riprioritizzare task critici", description: "Identificare i 3 deliverable ad alto impatto e allocare risorse dedicate. Sospendere task a basso valore.", priority: "high", estimatedImpact: "Alto", effort: "low", timeframe: "immediate" },
+    { id: "r2", title: "Daily standup sui ritardi", description: "Introduurre check-in giornalieri sui progetti in sforamento. Blocchi e dipendenze visibili.", priority: "medium", estimatedImpact: "Medio", effort: "low", timeframe: "immediate" },
+    { id: "r3", title: "Parallelizzare task indipendenti", description: "Mappare dipendenze e avviare in parallelo task non collegati. Riduzione timeline 15-25%.", priority: "high", estimatedImpact: "Alto", effort: "medium", timeframe: "short_term" },
+  ],
+  market: [
+    { id: "r1", title: "Content marketing e SEO", description: "Investire in contenuti settoriali e ottimizzazione SEO. Acquisizione organica a costo ridotto.", priority: "high", estimatedImpact: "Alto", effort: "medium", timeframe: "short_term" },
+    { id: "r2", title: "Partnership strategiche", description: "Identificare 2-3 partner complementari per co-marketing e lead sharing.", priority: "medium", estimatedImpact: "Medio", effort: "medium", timeframe: "medium_term" },
+    { id: "r3", title: "Analisi competitor trimestrale", description: "Report periodico su prezzi, feature e posizionamento dei competitor chiave.", priority: "medium", estimatedImpact: "Medio", effort: "low", timeframe: "immediate" },
+  ],
+  finance: [
+    { id: "r1", title: "Rinegoziazione fornitori", description: "Rivedere contratti annuali con i 3 fornitori principali. Obiettivo risparmio 8-12%.", priority: "high", estimatedImpact: "Alto", effort: "low", timeframe: "immediate" },
+    { id: "r2", title: "Automazione processi amministrativi", description: "Digitalizzare fatture, ordini e reportistica. Riduzione ore manuali 20-30%.", priority: "high", estimatedImpact: "Alto", effort: "medium", timeframe: "short_term" },
+    { id: "r3", title: "Dashboard cash flow real-time", description: "Implementare vista consolidata entrate/uscite con alert su soglie critiche.", priority: "medium", estimatedImpact: "Medio", effort: "low", timeframe: "immediate" },
+  ],
+  opportunities: [
+    { id: "r1", title: "Verifica requisiti bandi PNRR", description: "Valutare idoneità per fondi digitalizzazione PMI. Documentazione e tempistiche.", priority: "high", estimatedImpact: "Alto", effort: "medium", timeframe: "short_term" },
+    { id: "r2", title: "Credito d'imposta R&D", description: "Mappare attività R&D e spese ammissibili. Potenziale credito 15-20%.", priority: "high", estimatedImpact: "Alto", effort: "low", timeframe: "immediate" },
+    { id: "r3", title: "Fondi regionali e acceleratori", description: "Censire bandi aperti e programmi di accelerazione. Applicare ai più pertinenti.", priority: "medium", estimatedImpact: "Medio", effort: "medium", timeframe: "short_term" },
+  ],
+};
+
+function generateMockReport(activityId: string, activityName: string, promptId: string): AIReport {
+  const prompt = AI_PROMPTS.find((p) => p.id === promptId) ?? AI_PROMPTS[0];
+  const summaries: Record<string, string> = {
+    strategic: `Analisi strategica per ${activityName}: l'attività è nella fase di ${activityName.length % 3 === 0 ? "crescita" : "validazione"}. Principali opportunità: espansione mercato, ottimizzazione costi, partnership strategiche. Rischi: competizione, burn rate. Raccomandazioni prioritarie: focus su metriche chiave, revisione budget, accelerazione go-to-market.`,
+    project: `Ottimizzazione progetti per ${activityName}: identificati 2-3 progetti con ritardi. Suggerimenti: riprioritizzare task critici, allocare risorse su deliverable ad alto impatto, considerare parallelizzazione delle attività non dipendenti.`,
+    market: `Ricerca mercato per ${activityName}: trend emergenti nel settore. Competitor chiave da monitorare. Campagne marketing suggerite: content marketing, partnership, eventi settoriali.`,
+    finance: `Forecast finanziario: analisi cash flow e burn rate. Break-even stimato in 12-18 mesi. Ottimizzazioni costi: rinegoziazione fornitori, automazione processi, riduzione costi indiretti.`,
+    opportunities: `Opportunità di finanziamento: bandi PNRR digitalizzazione, agevolazioni startup innovative, fondi regionali. Verificare requisiti per crediti d'imposta R&D.`,
+  };
+  const insights = PROMPT_INSIGHTS[promptId] ?? PROMPT_INSIGHTS.strategic;
+  const recommendations = PROMPT_RECOMMENDATIONS[promptId] ?? PROMPT_RECOMMENDATIONS.strategic;
+  return {
+    id: `ai-${Date.now()}`,
+    activityId,
+    type: promptId as AIReport["type"],
+    title: `${prompt.label} — ${activityName}`,
+    summary: summaries[promptId] ?? summaries.strategic,
+    insights: insights.map((i, idx) => ({ ...i, id: `i-${promptId}-${idx}` })),
+    recommendations: recommendations.map((r, idx) => ({ ...r, id: `r-${promptId}-${idx}` })),
+    generatedAt: new Date().toISOString(),
+    dataSnapshot: {},
+  };
+}
+
 export default function AIPage({
   params,
 }: {
@@ -83,15 +194,60 @@ export default function AIPage({
   const activity = useActivity(activityId);
   if (!activity) return notFound();
 
-  const report = null as AIReport | null;
+  const router = useRouter();
+  const [report, setReport] = useState<AIReport | null>(null);
   const [expandedRec, setExpandedRec] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [createTaskFromRec, setCreateTaskFromRec] = useState<AIRecommendation | null>(null);
+  const [detailRec, setDetailRec] = useState<AIRecommendation | null>(null);
 
-  const handleGenerate = (promptId: string) => {
+  useEffect(() => {
+    getProjects(activityId).then((r) => { if (r.ok) setProjects(r.data); });
+  }, [activityId]);
+
+  const handleGenerate = async (promptId: string) => {
     setSelectedPrompt(promptId);
     setIsGenerating(true);
-    setTimeout(() => setIsGenerating(false), 2000);
+    setGenerateError(null);
+    const promptConfig = AI_PROMPTS.find((p) => p.id === promptId) ?? AI_PROMPTS[0];
+    try {
+      const result = await generateAIReport(
+        {
+          name: activity.name,
+          sector: activity.sector,
+          description: activity.description,
+          businessModels: activity.businessModels,
+          geography: activity.geography,
+          lifecycleStage: activity.lifecycleStage,
+        },
+        promptId,
+        promptConfig.label,
+        promptConfig.prompt
+      );
+      if (result.ok) {
+        const reportWithId = { ...result.data, activityId };
+        setReport(reportWithId);
+        toast.success("Report generato con AI");
+      } else {
+        const mock = generateMockReport(activityId, activity.name, promptId);
+        mock.activityId = activityId;
+        setReport(mock);
+        toast.success("Report generato (modalità demo — configura GROQ_API_KEY per AI reale)");
+        if (result.error?.includes("GROQ")) setGenerateError(result.error);
+      }
+    } catch (err) {
+      const mock = generateMockReport(activityId, activity.name, promptId);
+      mock.activityId = activityId;
+      setReport(mock);
+      const msg = err instanceof Error ? err.message : "Errore durante la generazione";
+      setGenerateError(msg);
+      toast.error("Fallback a dati demo");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -158,6 +314,13 @@ export default function AIPage({
           ))}
         </div>
       </Card>
+
+      {generateError && (
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          {generateError}
+        </div>
+      )}
 
       {/* Latest report */}
       {report ? (
@@ -330,11 +493,24 @@ export default function AIPage({
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Button size="sm" variant="secondary">
-                            Crea task da questa raccomandazione
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => {
+                              setCreateTaskFromRec(rec);
+                              setDetailRec(null);
+                            }}
+                          >
+                            <CheckSquare className="h-3.5 w-3.5" />
+                            Crea task
                           </Button>
-                          <Button size="sm" variant="ghost">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setDetailRec(rec)}
+                          >
+                            <Search className="h-3.5 w-3.5" />
                             Analisi approfondita
                           </Button>
                         </div>
@@ -346,18 +522,80 @@ export default function AIPage({
             </div>
           </Card>
         </>
-      ) : (
+      ) : null}
+
+      {/* Modale Analisi approfondita */}
+      {detailRec && (
+        <Modal
+          open={!!detailRec}
+          onClose={() => setDetailRec(null)}
+          title={detailRec.title}
+          description={`Priorità ${detailRec.priority} · Sforzo ${detailRec.effort} · ${TIMEFRAME_LABELS[detailRec.timeframe]}`}
+          size="md"
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => setDetailRec(null)}>
+                Chiudi
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  setCreateTaskFromRec(detailRec);
+                  setDetailRec(null);
+                }}
+              >
+                <CheckSquare className="h-3.5 w-3.5" />
+                Crea task da questa raccomandazione
+              </Button>
+            </>
+          }
+        >
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-foreground/90 leading-relaxed">
+              {detailRec.description}
+            </p>
+            <div className="rounded-lg bg-secondary/30 p-3 space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground">Piano d&apos;azione suggerito</p>
+              <ul className="text-xs space-y-1 list-disc list-inside text-foreground/80">
+                <li>Definire obiettivi e criteri di successo</li>
+                <li>Assegnare responsabile e deadline</li>
+                <li>Creare task nel progetto più pertinente</li>
+                <li>Monitorare avanzamento in dashboard</li>
+              </ul>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* TaskForm per creare task da raccomandazione */}
+      <TaskForm
+        open={!!createTaskFromRec}
+        onClose={() => setCreateTaskFromRec(null)}
+        activityId={activityId}
+        projects={projects}
+        initialValues={createTaskFromRec ? recToTaskInitial(createTaskFromRec) : undefined}
+        onSuccess={() => {
+          setCreateTaskFromRec(null);
+          toast.success("Task creato! Vai a Progetti per gestirlo.");
+          router.push(`/dashboard/${activityId}/projects`);
+        }}
+      />
+
+      {!report ? (
         <Card className="py-16 text-center">
           <Bot className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
           <p className="text-sm text-muted-foreground mb-4">
             Nessun report AI generato per {activity.name}
+          </p>
+          <p className="text-xs text-muted-foreground mb-4 max-w-md mx-auto">
+            Seleziona un modulo sopra o clicca per generare un report di analisi basato sui dati dell&apos;attività.
           </p>
           <Button onClick={() => handleGenerate("strategic")} loading={isGenerating}>
             <Sparkles className="h-4 w-4" />
             Genera il tuo primo report AI
           </Button>
         </Card>
-      )}
+      ) : null}
     </div>
   );
 }
