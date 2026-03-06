@@ -307,6 +307,13 @@ export type FinancialCategory =
   | "equipment"
   | "other";
 
+/** Tipo di promemoria per registrazioni finanziarie */
+export type FinancialReminderType =
+  | "person_to_pay"   // Persona da pagare
+  | "thing_to_buy"    // Acquisto da fare (es. stampante)
+  | "payment_due"     // Scadenza pagamento
+  | "other";          // Altro
+
 export interface FinancialRecord {
   id: string;
   activityId: string;
@@ -321,6 +328,12 @@ export interface FinancialRecord {
   recurringInterval?: "monthly" | "quarterly" | "annual";
   invoiceRef?: string;
   tags: string[];
+  /** Promemoria giornaliero: se true, mostra notifiche fino a completamento */
+  isReminder?: boolean;
+  /** Categoria del promemoria (persona da pagare, acquisto, ecc.) */
+  reminderType?: FinancialReminderType;
+  /** Data di scadenza/priorità del promemoria */
+  reminderDueDate?: string;
   createdAt: string;
 }
 

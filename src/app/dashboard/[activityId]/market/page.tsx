@@ -115,16 +115,16 @@ export default function MarketPage({
     : [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-bold">{activity.name} — Market Intelligence</h2>
-          <p className="text-sm text-muted-foreground">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-base sm:text-lg font-bold truncate">{activity.name} — Market</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Analisi mercato, trend e competitor
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <ActivityActions activity={activity} />
           {market && (
             <Button variant="outline" size="sm" disabled={loading} onClick={runAnalysis}>
@@ -172,7 +172,7 @@ export default function MarketPage({
             Analisi generata il {new Date(market.lastUpdated).toLocaleString("it-IT", { dateStyle: "medium", timeStyle: "short" })}
           </p>
           {/* Market size overview */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             {[
               {
                 label: "TAM — Total Addressable Market",
@@ -198,7 +198,7 @@ export default function MarketPage({
             ].map((item) => (
               <div
                 key={item.label}
-                className="rounded-xl border border-border/50 bg-card p-5"
+                className="rounded-lg sm:rounded-xl border border-border/50 bg-card p-3 sm:p-5"
               >
                 <div className="flex items-center justify-between mb-3">
                   <item.icon
@@ -212,7 +212,7 @@ export default function MarketPage({
                     {item.label.split("—")[0].trim()}
                   </span>
                 </div>
-                <p className="text-2xl font-black tabular-nums">
+                <p className="text-xl sm:text-2xl font-black tabular-nums">
                   {formatCurrency(item.value, "EUR", true)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">{item.desc}</p>
@@ -221,13 +221,13 @@ export default function MarketPage({
           </div>
 
           {/* Key metrics */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
             <div className="kpi-card">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-emerald-400" />
                 <span className="data-label">Crescita mercato</span>
               </div>
-              <span className="text-2xl font-bold text-emerald-400">
+              <span className="text-xl sm:text-2xl font-bold text-emerald-400">
                 +{market.growthRate}%
               </span>
               <span className="text-xs text-muted-foreground">anno/anno</span>
@@ -240,7 +240,7 @@ export default function MarketPage({
               </div>
               <span
                 className={cn(
-                  "text-2xl font-bold",
+                  "text-xl sm:text-2xl font-bold",
                   intensityConfig[market.competitorIntensity as keyof typeof intensityConfig]?.color
                 )}
               >
@@ -253,7 +253,7 @@ export default function MarketPage({
                 <Target className="h-4 w-4 text-muted-foreground" />
                 <span className="data-label">Prezzo medio mercato</span>
               </div>
-              <span className="text-2xl font-bold">
+              <span className="text-xl sm:text-2xl font-bold">
                 {formatCurrency(market.pricingAverage)}
               </span>
               {market.pricingLabel && (
@@ -268,7 +268,7 @@ export default function MarketPage({
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <span className="data-label">Quota potenziale</span>
               </div>
-              <span className="text-2xl font-bold">
+              <span className="text-xl sm:text-2xl font-bold">
                 {((market.targetMarket / market.servicableMarket) * 100).toFixed(1)}%
               </span>
               <span className="text-xs text-muted-foreground">del SAM</span>

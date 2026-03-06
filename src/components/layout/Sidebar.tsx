@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/app.store";
 import { ActivityForm } from "@/components/forms/ActivityForm";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { useState } from "react";
 import {
   LayoutDashboard,
@@ -81,7 +81,7 @@ function lifecycleLabel(stage: string): string {
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { currentActivityId, setCurrentActivity, sidebarCollapsed, toggleSidebar, activities } =
+  const { currentActivityId, setCurrentActivity, sidebarCollapsed, toggleSidebar, sidebarOpen, setSidebarOpen, activities } =
     useAppStore();
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -92,28 +92,53 @@ export function Sidebar() {
     if (match) setCurrentActivity(match[1]);
   }, [pathname, setCurrentActivity]);
 
+  // On mobile: start with sidebar closed. Close on route change.
+  useEffect(() => {
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    if (isMobile) setSidebarOpen(false);
+  }, [pathname, setSidebarOpen]);
+
+  const closeMobile = () => setSidebarOpen(false);
+
   return (
     <>
+    {/* Mobile backdrop */}
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={closeMobile}
+      onKeyDown={(e) => e.key === "Escape" && closeMobile()}
+      className={cn(
+        "fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden transition-opacity",
+        sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+      )}
+      aria-hidden={!sidebarOpen}
+    />
+
     <aside
       className={cn(
-        "fixed left-0 top-0 bottom-0 z-30 flex flex-col",
+        "fixed left-0 top-0 bottom-0 z-50 flex flex-col",
         "bg-sidebar border-r border-sidebar-border",
         "transition-all duration-300 ease-in-out",
-        sidebarCollapsed ? "w-16" : "w-64"
+        "w-64 max-w-[85vw]",
+        "md:translate-x-0 md:max-w-none",
+        sidebarCollapsed && "md:w-16 md:max-w-[4rem]",
+        !sidebarCollapsed && "md:w-64",
+        sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
       )}
     >
       {/* Header */}
-      <div className="flex h-14 items-center justify-between px-4 border-b border-sidebar-border">
+      <div className="flex h-12 md:h-14 items-center justify-between px-3 md:px-4 border-b border-sidebar-border shrink-0">
         {!sidebarCollapsed && (
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/20">
-              <Zap className="h-4 w-4 text-primary" />
+          <div className="flex items-center gap-2">
+            <div className="flex h-6 w-6 md:h-7 md:w-7 items-center justify-center rounded-lg bg-primary/20 shrink-0">
+              <Zap className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
             </div>
-            <div>
-              <span className="text-sm font-bold text-foreground tracking-tight">
+            <div className="min-w-0">
+              <span className="text-xs md:text-sm font-bold text-foreground tracking-tight">
                 ECOPRO
               </span>
-              <span className="ml-1 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+              <span className="ml-1 text-[9px] md:text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
                 Pro
               </span>
             </div>
@@ -121,37 +146,49 @@ export function Sidebar() {
         )}
 
         {sidebarCollapsed && (
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/20 mx-auto">
-            <Zap className="h-4 w-4 text-primary" />
+          <div className="flex h-6 w-6 md:h-7 md:w-7 items-center justify-center rounded-lg bg-primary/20 mx-auto">
+            <Zap className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
           </div>
         )}
 
-        {!sidebarCollapsed && (
+        <div className="flex items-center gap-1">
+          {/* Mobile: close button */}
           <button
-            onClick={toggleSidebar}
-            className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
+            onClick={closeMobile}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors md:hidden"
+            aria-label="Chiudi menu"
           >
-            <ChevronLeft className="h-3.5 w-3.5" />
+            <X className="h-4 w-4" />
           </button>
-        )}
+          {/* Desktop: collapse toggle */}
+          {!sidebarCollapsed && (
+            <button
+              onClick={toggleSidebar}
+              className="hidden md:flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Collapsed toggle */}
+      {/* Collapsed toggle - desktop only */}
       {sidebarCollapsed && (
         <button
           onClick={toggleSidebar}
-          className="absolute -right-3 top-16 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:text-foreground shadow-sm transition-colors"
+          className="absolute -right-3 top-14 hidden md:flex h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:text-foreground shadow-sm transition-colors"
         >
           <ChevronRight className="h-3 w-3" />
         </button>
       )}
 
       {/* Global Dashboard link */}
-      <div className="px-3 pt-3">
+      <div className="px-2 md:px-3 pt-2 md:pt-3">
         <Link
           href="/dashboard"
+          onClick={closeMobile}
           className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+            "flex items-center gap-2 md:gap-3 rounded-lg px-2.5 md:px-3 py-2 text-xs md:text-sm transition-colors min-h-[44px] md:min-h-0",
             "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent",
             pathname === "/dashboard" &&
               "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
@@ -159,13 +196,13 @@ export function Sidebar() {
           )}
           title={sidebarCollapsed ? "Global Dashboard" : undefined}
         >
-          <LayoutDashboard className="h-4 w-4 shrink-0" />
+          <LayoutDashboard className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" />
           {!sidebarCollapsed && <span>Global Dashboard</span>}
         </Link>
       </div>
 
       {/* Activities section */}
-      <div className="flex-1 overflow-y-auto no-scrollbar px-3 py-3">
+      <div className="flex-1 overflow-y-auto no-scrollbar px-2 md:px-3 py-2 md:py-3">
         {!sidebarCollapsed && (
           <div className="flex items-center justify-between px-3 mb-2">
             <p className="section-title">Activities</p>
@@ -190,7 +227,7 @@ export function Sidebar() {
                 <button
                   onClick={() => setCurrentActivity(activity.id)}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors w-full text-left",
+                    "flex items-center gap-2 md:gap-3 rounded-lg px-2.5 md:px-3 py-2 text-xs md:text-sm transition-colors w-full text-left min-h-[44px] md:min-h-0",
                     "hover:bg-sidebar-accent",
                     isSelected
                       ? "text-sidebar-accent-foreground"
@@ -239,8 +276,9 @@ export function Sidebar() {
                         <Link
                           key={item.href}
                           href={href}
+                          onClick={closeMobile}
                           className={cn(
-                            "flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs transition-colors",
+                            "flex items-center gap-2 rounded-md px-2.5 py-2 md:py-1.5 text-xs transition-colors min-h-[40px] md:min-h-0",
                             isActive
                               ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                               : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
@@ -263,8 +301,9 @@ export function Sidebar() {
       <div className="border-t border-sidebar-border px-3 py-3 flex flex-col gap-1">
         <Link
           href="/dashboard/settings"
+          onClick={closeMobile}
           className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+            "flex items-center gap-2 md:gap-3 rounded-lg px-2.5 md:px-3 py-2 text-xs md:text-sm transition-colors min-h-[44px] md:min-h-0",
             "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent",
             sidebarCollapsed && "justify-center px-0"
           )}

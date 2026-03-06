@@ -121,19 +121,19 @@ export default function ActivityDashboardPage({
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* ── Activity Header ── */}
       <div
-        className="rounded-xl border p-5 relative overflow-hidden"
+        className="rounded-lg sm:rounded-xl border p-3 sm:p-5 relative overflow-hidden"
         style={{
           borderColor: `${activity.color}30`,
           background: `linear-gradient(135deg, ${activity.color}08 0%, transparent 60%)`,
         }}
       >
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
             <div
-              className="flex h-12 w-12 items-center justify-center rounded-xl text-xl font-black"
+              className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg sm:rounded-xl text-lg sm:text-xl font-black shrink-0"
               style={{
                 backgroundColor: `${activity.color}20`,
                 color: activity.color,
@@ -142,14 +142,14 @@ export default function ActivityDashboardPage({
             >
               {activity.name.charAt(0)}
             </div>
-            <div>
-              <h1 className="text-xl font-black tracking-tight">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg sm:text-xl font-black tracking-tight truncate">
                 {activity.name}
               </h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 line-clamp-2">
                 {activity.description}
               </p>
-              <div className="flex items-center gap-2 mt-2">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-2">
                 <Badge variant="neutral">{activity.sector}</Badge>
                 {activity.businessModels.slice(0, 2).map((bm) => (
                   <Badge key={bm} variant="default">
@@ -172,10 +172,10 @@ export default function ActivityDashboardPage({
           </div>
 
           {/* CRUD actions + Health score */}
-          <div className="flex flex-col items-end gap-3">
+          <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 shrink-0">
             <ActivityActions activity={activity} />
           <div className="flex flex-col items-center gap-1">
-            <div className="relative flex h-16 w-16 items-center justify-center">
+            <div className="relative flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center">
               <svg className="absolute inset-0" viewBox="0 0 64 64">
                 <circle
                   cx="32"
@@ -201,7 +201,7 @@ export default function ActivityDashboardPage({
               </svg>
               <span
                 className={cn(
-                  "text-xl font-black tabular-nums",
+                  "text-lg sm:text-xl font-black tabular-nums",
                   getScoreColor(kpis.healthScore)
                 )}
               >
@@ -216,7 +216,7 @@ export default function ActivityDashboardPage({
         </div>
 
         {/* Quick stats row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 pt-4 border-t border-border/30">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border/30">
           <div>
             <p className="text-[11px] text-muted-foreground">Capitale Investito</p>
             <p className="text-sm font-bold">
@@ -241,7 +241,7 @@ export default function ActivityDashboardPage({
       </div>
 
       {/* ── KPI Grid ── */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
         <Stat
           label="Revenue"
           value={formatCurrency(kpis.totalRevenue, "EUR", true)}
@@ -291,7 +291,7 @@ export default function ActivityDashboardPage({
       </div>
 
       {/* ── Second row ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         <Stat
           label="Costi Totali"
           value={formatCurrency(kpis.totalCosts, "EUR", true)}
@@ -323,10 +323,10 @@ export default function ActivityDashboardPage({
       </div>
 
       {/* ── Content grid ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Projects list */}
-        <div className="lg:col-span-2 space-y-4">
-          <Card>
+        <div className="lg:col-span-2 space-y-3 sm:space-y-4">
+          <Card padding="none" className="p-3 sm:p-5">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Briefcase className="h-4 w-4" />
@@ -340,15 +340,15 @@ export default function ActivityDashboardPage({
               </Link>
             </CardHeader>
 
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {projects.slice(0, 5).map((project) => (
                 <div
                   key={project.id}
-                  className="flex items-center gap-4 p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
+                  className="flex items-center gap-3 sm:gap-4 p-2.5 sm:p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <p className="text-sm font-medium truncate">{project.name}</p>
+                    <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
+                      <p className="text-xs sm:text-sm font-medium truncate">{project.name}</p>
                       <span className={cn("badge text-[10px]", getStatusBg(project.status))}>
                         {project.status.replace("_", " ")}
                       </span>
@@ -361,7 +361,7 @@ export default function ActivityDashboardPage({
                       size="xs"
                       showLabel
                     />
-                    <div className="flex items-center gap-4 mt-1.5 text-[11px] text-muted-foreground">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-4 mt-1 text-[10px] sm:text-[11px] text-muted-foreground">
                       <span>
                         Budget: {formatCurrency(project.budgetActual, "EUR", true)}/
                         {formatCurrency(project.budgetEstimated, "EUR", true)}
@@ -391,7 +391,7 @@ export default function ActivityDashboardPage({
           </Card>
 
           {/* Task overview */}
-          <Card>
+          <Card padding="none" className="p-3 sm:p-5">
             <CardHeader>
               <CardTitle>Task Attivi</CardTitle>
               <div className="flex items-center gap-2">
@@ -407,11 +407,11 @@ export default function ActivityDashboardPage({
               </div>
             </CardHeader>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5 sm:space-y-2">
               {inProgressTasks.slice(0, 4).map((task) => (
                 <div
                   key={task.id}
-                  className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-secondary/30 transition-colors"
+                  className="flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-lg hover:bg-secondary/30 transition-colors"
                 >
                   <div
                     className={cn(
@@ -447,7 +447,7 @@ export default function ActivityDashboardPage({
                   <Progress
                     value={task.completionPct}
                     size="xs"
-                    className="w-16"
+                    className="w-12 sm:w-16"
                     showLabel
                   />
                 </div>
@@ -457,9 +457,9 @@ export default function ActivityDashboardPage({
         </div>
 
         {/* Sidebar col */}
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {/* Alerts */}
-          <Card>
+          <Card padding="none" className="p-3 sm:p-5">
             <CardHeader>
               <CardTitle>Alert</CardTitle>
               {alerts.filter((a) => !a.isRead).length > 0 && (
@@ -472,7 +472,7 @@ export default function ActivityDashboardPage({
           </Card>
 
           {/* Project stats */}
-          <Card>
+          <Card padding="none" className="p-3 sm:p-5">
             <CardHeader>
               <CardTitle>Avanzamento Progetti</CardTitle>
             </CardHeader>
@@ -489,21 +489,21 @@ export default function ActivityDashboardPage({
                 color="bg-emerald-500"
                 size="sm"
               />
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/30">
-                <div className="text-center p-2 rounded-lg bg-secondary/50">
-                  <p className="text-lg font-bold text-emerald-400">{completedProjects.length}</p>
+              <div className="grid grid-cols-2 gap-1.5 sm:gap-2 pt-2 border-t border-border/30">
+                <div className="text-center p-1.5 sm:p-2 rounded-lg bg-secondary/50">
+                  <p className="text-base sm:text-lg font-bold text-emerald-400">{completedProjects.length}</p>
                   <p className="text-[10px] text-muted-foreground">Completati</p>
                 </div>
-                <div className="text-center p-2 rounded-lg bg-secondary/50">
-                  <p className="text-lg font-bold text-blue-400">{activeProjects.length}</p>
+                <div className="text-center p-1.5 sm:p-2 rounded-lg bg-secondary/50">
+                  <p className="text-base sm:text-lg font-bold text-blue-400">{activeProjects.length}</p>
                   <p className="text-[10px] text-muted-foreground">In corso</p>
                 </div>
-                <div className="text-center p-2 rounded-lg bg-secondary/50">
-                  <p className="text-lg font-bold text-red-400">{overdueTasks.length}</p>
+                <div className="text-center p-1.5 sm:p-2 rounded-lg bg-secondary/50">
+                  <p className="text-base sm:text-lg font-bold text-red-400">{overdueTasks.length}</p>
                   <p className="text-[10px] text-muted-foreground">Task ritardo</p>
                 </div>
-                <div className="text-center p-2 rounded-lg bg-secondary/50">
-                  <p className="text-lg font-bold">{inProgressTasks.length}</p>
+                <div className="text-center p-1.5 sm:p-2 rounded-lg bg-secondary/50">
+                  <p className="text-base sm:text-lg font-bold">{inProgressTasks.length}</p>
                   <p className="text-[10px] text-muted-foreground">In progress</p>
                 </div>
               </div>

@@ -1,6 +1,13 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0f172a",
+};
 
 export const metadata: Metadata = {
   title: "ECOPRO — Gestionale Multi-Attività",
@@ -16,10 +23,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="it" className="dark">
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased min-h-screen safe-area-pb">
         {children}
         <Toaster
-          position="bottom-right"
+          position="bottom-center"
           toastOptions={{
             style: {
               background: "hsl(222 47% 7%)",

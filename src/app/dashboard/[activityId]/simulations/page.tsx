@@ -98,7 +98,7 @@ function ScenarioCard({
   return (
     <div
       className={cn(
-        "rounded-xl border p-4 cursor-pointer transition-all duration-200 group",
+        "rounded-lg sm:rounded-xl border p-3 sm:p-4 cursor-pointer transition-all duration-200 group",
         isSelected
           ? "border-primary/50 bg-primary/5"
           : "border-border/50 bg-card hover:border-border"
@@ -130,7 +130,7 @@ function ScenarioCard({
             {SCENARIO_LABELS[scenario.type]}
           </Badge>
         </div>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
           {onSetActive && (
             <button
               onClick={() => onSetActive(scenario.id)}
@@ -324,16 +324,16 @@ export default function SimulationsPage({
   })();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-bold">{activity.name} — Simulazioni & Forecast</h2>
-          <p className="text-sm text-muted-foreground">
-            Analisi what-if e proiezioni finanziarie multi-scenario
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-base sm:text-lg font-bold truncate">{activity.name} — Simulazioni</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Analisi what-if e proiezioni multi-scenario
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 shrink-0">
           <ActivityActions activity={activity} />
           <Button
             variant={compareMode ? "primary" : "outline"}
@@ -362,7 +362,7 @@ export default function SimulationsPage({
       ) : (
         <>
           {/* Scenario cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {scenarios.map((scenario) => (
               <ScenarioCard
                 onEdit={(s) => setEditScenario_(s)}
@@ -378,7 +378,7 @@ export default function SimulationsPage({
 
           {/* Comparison chart */}
           {compareMode && compareData.length > 0 && (
-            <Card>
+            <Card padding="none" className="p-3 sm:p-5">
               <CardHeader>
                 <CardTitle>Confronto Revenue — Tutti gli Scenari</CardTitle>
               </CardHeader>

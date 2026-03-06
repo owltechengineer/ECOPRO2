@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { FinancialRecord, FinancialRecordType, FinancialCategory, Project } from "@/types";
+import type { FinancialRecord, FinancialRecordType, FinancialCategory, FinancialReminderType, Project } from "@/types";
 import { createFinancialRecord, updateFinancialRecord } from "@/actions/financial";
 
 const TYPE_OPTIONS: { value: FinancialRecordType; label: string; color: string }[] = [
@@ -37,6 +37,13 @@ const CATEGORY_OPTIONS: { value: FinancialCategory; label: string }[] = [
 
 const CURRENCY_OPTIONS = ["EUR", "USD", "GBP", "CHF"].map((c) => ({ value: c, label: c }));
 
+const REMINDER_TYPE_OPTIONS: { value: FinancialReminderType; label: string }[] = [
+  { value: "person_to_pay", label: "Persona da pagare" },
+  { value: "thing_to_buy", label: "Acquisto da fare (es. stampante)" },
+  { value: "payment_due", label: "Scadenza pagamento" },
+  { value: "other", label: "Altro" },
+];
+
 interface FormState {
   type: FinancialRecordType;
   category: FinancialCategory;
@@ -49,6 +56,9 @@ interface FormState {
   recurringInterval: "monthly" | "quarterly" | "annual" | "";
   invoiceRef: string;
   tags: string;
+  isReminder: boolean;
+  reminderType: FinancialReminderType;
+  reminderDueDate: string;
 }
 
 function defaultState(record?: FinancialRecord): FormState {
@@ -64,6 +74,9 @@ function defaultState(record?: FinancialRecord): FormState {
     recurringInterval: record?.recurringInterval ?? "",
     invoiceRef: record?.invoiceRef ?? "",
     tags: record?.tags?.join(", ") ?? "",
+    isReminder: record?.isReminder ?? false,
+    reminderType: record?.reminderType ?? "other",
+    reminderDueDate: record?.reminderDueDate ?? record?.date ?? new Date().toISOString().split("T")[0],
   };
 }
 
@@ -98,6 +111,7 @@ export function FinancialForm({ open, onClose, activityId, projects = [], record
     if (!form.amount || Number(form.amount) <= 0) errs.amount = "Importo deve essere > 0";
     if (!form.date) errs.date = "Data obbligatoria";
     if (form.isRecurring && !form.recurringInterval) errs.recurringInterval = "Seleziona intervallo";
+    if (form.isReminder && !form.reminderType) errs.reminderType = "Seleziona tipo promemoria";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
@@ -122,6 +136,9 @@ export function FinancialForm({ open, onClose, activityId, projects = [], record
         : undefined,
       invoiceRef: form.invoiceRef || undefined,
       tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
+      isReminder: form.isReminder,
+      reminderType: form.isReminder ? form.reminderType : undefined,
+      reminderDueDate: form.isReminder && form.reminderDueDate ? form.reminderDueDate : undefined,
     };
 
     const result = isEdit && record
@@ -265,6 +282,54 @@ export function FinancialForm({ open, onClose, activityId, projects = [], record
                 { value: "annual", label: "Annuale" },
               ]}
             />
+          )}
+        </div>
+
+        {/* Promemoria giornaliero */}
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 space-y-3">
+          <label className="flex items-center gap-2.5 cursor-pointer group">
+            <div
+              role="checkbox"
+              aria-checked={form.isReminder}
+              onClick={() => set("isReminder", !form.isReminder)}
+              className={cn(
+                "flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-all",
+                form.isReminder
+                  ? "bg-amber-500 border-amber-500 text-white"
+                  : "border-border bg-background group-hover:border-amber-500/50"
+              )}
+            >
+              {form.isReminder && (
+                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
+            <div>
+              <span className="text-xs font-semibold text-foreground">Promemoria giornaliero</span>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Ricevi notifiche ogni giorno finché non completi
+              </p>
+            </div>
+          </label>
+
+          {form.isReminder && (
+            <div className="space-y-2 pt-1">
+              <Select
+                label="Tipo promemoria *"
+                value={form.reminderType}
+                onChange={(e) => set("reminderType", e.target.value as FinancialReminderType)}
+                error={errors.reminderType}
+                options={REMINDER_TYPE_OPTIONS}
+              />
+              <Input
+                label="Data scadenza / priorità"
+                type="date"
+                value={form.reminderDueDate}
+                onChange={(e) => set("reminderDueDate", e.target.value)}
+                placeholder="Quando ricordare"
+              />
+            </div>
           )}
         </div>
 

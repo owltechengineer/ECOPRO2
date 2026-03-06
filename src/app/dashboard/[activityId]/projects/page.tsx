@@ -97,10 +97,10 @@ function GanttChart({ projects }: { projects: Project[] }) {
   };
 
   return (
-    <div className="overflow-x-auto">
-      <div className="min-w-[600px]">
+    <div className="overflow-x-auto -mx-3 sm:mx-0">
+      <div className="min-w-[480px] sm:min-w-[600px]">
         {/* Month headers */}
-        <div className="flex mb-2 pl-44">
+        <div className="flex mb-2 pl-24 sm:pl-44">
           {months.map((m) => (
             <div
               key={m}
@@ -122,9 +122,9 @@ function GanttChart({ projects }: { projects: Project[] }) {
               statusColors[project.status] ?? "#6366f1";
 
             return (
-              <div key={project.id} className="flex items-center gap-3">
+              <div key={project.id} className="flex items-center gap-2 sm:gap-3">
                 {/* Project label */}
-                <div className="w-40 shrink-0">
+                <div className="w-20 sm:w-40 shrink-0">
                   <p className="text-xs font-medium truncate">{project.name}</p>
                   <p className="text-[10px] text-muted-foreground">
                     {project.completionPct}% complete
@@ -229,13 +229,13 @@ function TaskTable({
   return (
     <div>
       {/* Filter bar */}
-      <div className="flex items-center gap-2 mb-4 flex-wrap">
-        {filters.map((f) => (
+      <div className="flex items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4 flex-wrap">
+          {filters.map((f) => (
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
             className={cn(
-              "px-3 py-1 rounded-lg text-xs font-medium transition-colors",
+              "px-2.5 py-1 rounded-md text-[11px] sm:text-xs font-medium transition-colors",
               filter === f.key
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:text-foreground hover:bg-accent"
@@ -245,8 +245,8 @@ function TaskTable({
           </button>
         ))}
 
-        <div className="ml-auto flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Ordina:</span>
+        <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
+          <span className="text-[10px] sm:text-xs text-muted-foreground">Ordina:</span>
           <button
             onClick={() => setSortKey(sortKey === "deadline" ? "priority" : "deadline")}
             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
@@ -262,28 +262,16 @@ function TaskTable({
         <table className="w-full">
           <thead>
             <tr className="border-b border-border/50 bg-secondary/30">
-              <th className="text-left text-[11px] font-semibold text-muted-foreground px-4 py-2.5">
+              <th className="text-left text-[10px] sm:text-[11px] font-semibold text-muted-foreground px-3 sm:px-4 py-2 sm:py-2.5">
                 Task
               </th>
-              <th className="text-left text-[11px] font-semibold text-muted-foreground px-3 py-2.5 hidden sm:table-cell">
-                Progetto
-              </th>
-              <th className="text-left text-[11px] font-semibold text-muted-foreground px-3 py-2.5">
-                Status
-              </th>
-              <th className="text-left text-[11px] font-semibold text-muted-foreground px-3 py-2.5">
-                Priorità
-              </th>
-              <th className="text-left text-[11px] font-semibold text-muted-foreground px-3 py-2.5 hidden md:table-cell">
-                Ore
-              </th>
-              <th className="text-left text-[11px] font-semibold text-muted-foreground px-3 py-2.5">
-                Deadline
-              </th>
-              <th className="text-left text-[11px] font-semibold text-muted-foreground px-3 py-2.5">
-                %
-              </th>
-              <th className="w-16 px-3 py-2.5" />
+              <th className="text-left text-[10px] sm:text-[11px] font-semibold text-muted-foreground px-2 sm:px-3 py-2 hidden sm:table-cell">Progetto</th>
+              <th className="text-left text-[10px] sm:text-[11px] font-semibold text-muted-foreground px-2 sm:px-3 py-2">Status</th>
+              <th className="text-left text-[10px] sm:text-[11px] font-semibold text-muted-foreground px-2 sm:px-3 py-2">Priorità</th>
+              <th className="text-left text-[10px] sm:text-[11px] font-semibold text-muted-foreground px-2 sm:px-3 py-2 hidden md:table-cell">Ore</th>
+              <th className="text-left text-[10px] sm:text-[11px] font-semibold text-muted-foreground px-2 sm:px-3 py-2">Deadline</th>
+              <th className="text-left text-[10px] sm:text-[11px] font-semibold text-muted-foreground px-2 sm:px-3 py-2">%</th>
+              <th className="w-12 sm:w-16 px-2 sm:px-3 py-2" />
             </tr>
           </thead>
           <tbody>
@@ -295,8 +283,8 @@ function TaskTable({
                   key={task.id}
                   className="table-row group/row"
                 >
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
+                  <td className="px-3 sm:px-4 py-2 sm:py-3">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
                       <div
                         className={cn(
                           "h-1.5 w-1.5 rounded-full shrink-0",
@@ -309,7 +297,7 @@ function TaskTable({
                             : "bg-slate-500"
                         )}
                       />
-                      <span className="text-sm font-medium">{task.name}</span>
+                      <span className="text-xs sm:text-sm font-medium">{task.name}</span>
                     </div>
                     {task.owner && (
                       <p className="text-[10px] text-muted-foreground mt-0.5 ml-3.5">
@@ -317,30 +305,30 @@ function TaskTable({
                       </p>
                     )}
                   </td>
-                  <td className="px-3 py-3 hidden sm:table-cell">
+                  <td className="px-2 sm:px-3 py-2 sm:py-3 hidden sm:table-cell">
                     <span className="text-xs text-muted-foreground">
                       {projectMap[task.projectId] ?? "—"}
                     </span>
                   </td>
-                  <td className="px-3 py-3">
-                    <span className={cn("badge", getStatusBg(task.status))}>
+                  <td className="px-2 sm:px-3 py-2 sm:py-3">
+                    <span className={cn("badge text-[10px]", getStatusBg(task.status))}>
                       {task.status.replace("_", " ")}
                     </span>
                   </td>
-                  <td className="px-3 py-3">
-                    <span className={cn("badge", getPriorityBg(task.priority))}>
+                  <td className="px-2 sm:px-3 py-2 sm:py-3">
+                    <span className={cn("badge text-[10px]", getPriorityBg(task.priority))}>
                       {task.priority}
                     </span>
                   </td>
-                  <td className="px-3 py-3 hidden md:table-cell">
+                  <td className="px-2 sm:px-3 py-2 sm:py-3 hidden md:table-cell">
                     <span className="text-xs tabular-nums text-muted-foreground">
                       {formatHours(task.actualHours)}/{formatHours(task.estimatedHours)}
                     </span>
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-2 sm:px-3 py-2 sm:py-3">
                     <span
                       className={cn(
-                        "text-xs font-medium tabular-nums",
+                        "text-[10px] sm:text-xs font-medium tabular-nums",
                         isOverdue
                           ? "text-red-400"
                           : days <= 3
@@ -356,20 +344,20 @@ function TaskTable({
                       )}
                     </span>
                   </td>
-                  <td className="px-3 py-3">
-                    <div className="flex items-center gap-2">
+                  <td className="px-2 sm:px-3 py-2 sm:py-3">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
                       <Progress
                         value={task.completionPct}
                         size="xs"
-                        className="w-14"
+                        className="w-10 sm:w-14"
                       />
                       <span className="text-[10px] tabular-nums text-muted-foreground">
                         {task.completionPct}%
                       </span>
                     </div>
                   </td>
-                  <td className="px-3 py-3">
-                    <div className="flex items-center gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                  <td className="px-2 sm:px-3 py-2 sm:py-3">
+                    <div className="flex items-center gap-0.5 sm:gap-1 opacity-100 sm:opacity-0 sm:group-hover/row:opacity-100 transition-opacity">
                       {task.status !== "done" && onStatusChange && (
                         <button
                           onClick={() => onStatusChange(task, "done")}
@@ -430,14 +418,14 @@ function ProjectCard({
   const revenueVariance = project.revenueActual - project.revenueEstimated;
 
   return (
-    <div className="rounded-xl border border-border/50 overflow-hidden">
+    <div className="rounded-lg sm:rounded-xl border border-border/50 overflow-hidden">
       <div
-        className="flex items-center gap-4 p-4 cursor-pointer hover:bg-accent/20 transition-colors"
+        className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 cursor-pointer hover:bg-accent/20 transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-sm font-semibold truncate">{project.name}</h3>
+          <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
+            <h3 className="text-xs sm:text-sm font-semibold truncate">{project.name}</h3>
             <span className={cn("badge text-[10px]", getStatusBg(project.status))}>
               {project.status.replace("_", " ")}
             </span>
@@ -446,7 +434,7 @@ function ProjectCard({
             </span>
           </div>
           <Progress value={project.completionPct} size="sm" showLabel className="mb-1.5" />
-          <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-4 text-[10px] sm:text-[11px] text-muted-foreground">
             <span className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
               {formatDate(project.startDate)} → {formatDate(project.endDate)}
@@ -491,32 +479,32 @@ function ProjectCard({
 
       {/* Expanded content */}
       {expanded && (
-        <div className="border-t border-border/50 p-4 bg-secondary/10 space-y-4">
+        <div className="border-t border-border/50 p-3 sm:p-4 bg-secondary/10 space-y-3 sm:space-y-4">
           {project.description && (
             <p className="text-xs text-muted-foreground">{project.description}</p>
           )}
 
           {/* KPI row */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-2.5 rounded-lg bg-card border border-border/50 text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+            <div className="p-2 sm:p-2.5 rounded-lg bg-card border border-border/50 text-center">
               <p className="text-[10px] text-muted-foreground">Budget Variance</p>
               <p className={cn("text-sm font-bold", budgetVariance > 0 ? "text-red-400" : "text-emerald-400")}>
                 {budgetVariance > 0 ? "+" : ""}
                 {formatCurrency(budgetVariance, "EUR", true)}
               </p>
             </div>
-            <div className="p-2.5 rounded-lg bg-card border border-border/50 text-center">
+            <div className="p-2 sm:p-2.5 rounded-lg bg-card border border-border/50 text-center">
               <p className="text-[10px] text-muted-foreground">Revenue Variance</p>
               <p className={cn("text-sm font-bold", revenueVariance >= 0 ? "text-emerald-400" : "text-red-400")}>
                 {revenueVariance > 0 ? "+" : ""}
                 {formatCurrency(revenueVariance, "EUR", true)}
               </p>
             </div>
-            <div className="p-2.5 rounded-lg bg-card border border-border/50 text-center">
+            <div className="p-2 sm:p-2.5 rounded-lg bg-card border border-border/50 text-center">
               <p className="text-[10px] text-muted-foreground">Metodologia</p>
               <p className="text-sm font-bold capitalize">{project.methodology}</p>
             </div>
-            <div className="p-2.5 rounded-lg bg-card border border-border/50 text-center">
+            <div className="p-2 sm:p-2.5 rounded-lg bg-card border border-border/50 text-center">
               <p className="text-[10px] text-muted-foreground">Giorni rimanenti</p>
               <p className={cn("text-sm font-bold", daysUntil(project.endDate) < 0 ? "text-red-400" : daysUntil(project.endDate) < 14 ? "text-amber-400" : "")}>
                 {daysUntil(project.endDate) < 0
@@ -662,24 +650,24 @@ export default function ProjectsPage({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Activity header with CRUD actions */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{activity.name} — Progetti</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{activity.sector}</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-2xl font-bold truncate">{activity.name} — Progetti</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">{activity.sector}</p>
         </div>
-        <ActivityActions activity={activity} showLabels />
+        <ActivityActions activity={activity} showLabels className="shrink-0" />
       </div>
 
       {/* KPI bar */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
         <div className="kpi-card">
           <div className="flex items-center gap-2">
             <BarChart2 className="h-4 w-4 text-muted-foreground" />
             <span className="data-label">Progetti totali</span>
           </div>
-          <span className="text-2xl font-bold">{projects.length}</span>
+          <span className="text-xl sm:text-2xl font-bold">{projects.length}</span>
           <span className="text-xs text-muted-foreground">
             {activeProjects.length} attivi · {completedProjects.length} completati
           </span>
@@ -689,7 +677,7 @@ export default function ProjectsPage({
             <Clock className="h-4 w-4 text-muted-foreground" />
             <span className="data-label">Budget usato</span>
           </div>
-          <span className="text-2xl font-bold">
+          <span className="text-xl sm:text-2xl font-bold">
             {formatCurrency(totalActual, "EUR", true)}
           </span>
           <Progress
@@ -705,7 +693,7 @@ export default function ProjectsPage({
             <CheckSquare className="h-4 w-4 text-muted-foreground" />
             <span className="data-label">Task totali</span>
           </div>
-          <span className="text-2xl font-bold">{tasks.length}</span>
+          <span className="text-xl sm:text-2xl font-bold">{tasks.length}</span>
           <span className="text-xs text-muted-foreground">
             {tasks.filter((t) => t.status === "done").length} completati
           </span>
@@ -722,11 +710,11 @@ export default function ProjectsPage({
           </div>
           <span
             className={cn(
-              "text-2xl font-bold",
-              overdueTasks.length > 0 ? "text-red-400" : "text-emerald-400"
-            )}
-          >
-            {overdueTasks.length}
+            "text-xl sm:text-2xl font-bold",
+            overdueTasks.length > 0 ? "text-red-400" : "text-emerald-400"
+          )}
+        >
+          {overdueTasks.length}
           </span>
           <span className="text-xs text-muted-foreground">
             {overdueTasks.length === 0
@@ -737,14 +725,14 @@ export default function ProjectsPage({
       </div>
 
       {/* View switcher */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1 p-1 rounded-lg bg-secondary/50">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-0.5 sm:gap-1 p-1 rounded-lg bg-secondary/50">
           {(["list", "gantt", "tasks"] as const).map((v) => (
             <button
               key={v}
               onClick={() => setView(v)}
               className={cn(
-                "px-3 py-1.5 rounded-md text-xs font-medium transition-colors capitalize",
+                "px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-[11px] sm:text-xs font-medium transition-colors capitalize",
                 view === v
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -777,7 +765,7 @@ export default function ProjectsPage({
             <div key={project.id} className="group relative">
               <ProjectCard project={project} tasks={tasks} />
               {/* Edit / Delete overlay buttons */}
-              <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex gap-0.5 sm:gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={(e) => { e.stopPropagation(); setEditProject(project); }}
                   className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
@@ -808,7 +796,7 @@ export default function ProjectsPage({
       )}
 
       {view === "gantt" && (
-        <Card>
+        <Card padding="none" className="p-3 sm:p-5">
           <CardHeader>
             <CardTitle>Timeline Progetti</CardTitle>
             <span className="text-xs text-muted-foreground">La linea rossa indica oggi</span>
@@ -822,7 +810,7 @@ export default function ProjectsPage({
       )}
 
       {view === "tasks" && (
-        <Card>
+        <Card padding="none" className="p-3 sm:p-5">
           <CardHeader>
             <CardTitle>Task Management</CardTitle>
             <Badge variant="neutral">{tasks.length} task</Badge>

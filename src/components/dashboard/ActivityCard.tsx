@@ -48,16 +48,16 @@ export function ActivityCard({ activity, activeProjectsCount = 0, criticalAlerts
       href={`/dashboard/${activity.id}`}
       onClick={() => setCurrentActivity(activity.id)}
       className={cn(
-        "block rounded-xl border border-border/50 bg-card p-5",
+        "block rounded-lg md:rounded-xl border border-border/50 bg-card p-2.5 sm:p-4 md:p-5",
         "transition-all duration-200 hover:border-border hover:shadow-lg hover:shadow-black/20",
         "group cursor-pointer"
       )}
     >
       {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
+      <div className="flex items-start justify-between mb-1.5 sm:mb-3 md:mb-4">
+        <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
           <div
-            className="flex h-9 w-9 items-center justify-center rounded-xl font-bold text-sm shrink-0"
+            className="flex h-6 w-6 sm:h-8 sm:w-8 md:h-9 md:w-9 items-center justify-center rounded-md md:rounded-xl font-bold text-[10px] sm:text-sm shrink-0"
             style={{
               backgroundColor: `${activity.color}20`,
               color: activity.color,
@@ -66,33 +66,33 @@ export function ActivityCard({ activity, activeProjectsCount = 0, criticalAlerts
           >
             {activity.name.charAt(0)}
           </div>
-          <div>
-            <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+          <div className="min-w-0 flex-1">
+            <h3 className="text-[11px] sm:text-sm font-bold text-foreground group-hover:text-primary transition-colors truncate">
               {activity.name}
             </h3>
-            <p className="text-xs text-muted-foreground truncate max-w-[160px]">
+            <p className="text-[9px] sm:text-xs text-muted-foreground truncate">
               {activity.sector}
             </p>
           </div>
         </div>
 
         {/* Health Score */}
-        <div className="flex flex-col items-end gap-1">
+        <div className="flex flex-col items-end gap-0.5 shrink-0">
           <span
             className={cn(
-              "text-xl font-bold tabular-nums",
+              "text-sm sm:text-lg md:text-xl font-bold tabular-nums",
               hasData ? getScoreColor(kpis.healthScore) : "text-muted-foreground"
             )}
           >
             {hasData ? kpis.healthScore : "—"}
           </span>
-          <span className="text-[10px] text-muted-foreground">health</span>
+          <span className="text-[9px] sm:text-[10px] text-muted-foreground">health</span>
         </div>
       </div>
 
       {/* Health bar */}
-      <div className="mb-4">
-        <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+      <div className="mb-1.5 sm:mb-3 md:mb-4">
+        <div className="h-0.5 sm:h-1.5 rounded-full bg-secondary overflow-hidden">
           <div
             className={cn(
               "h-full rounded-full bg-gradient-to-r transition-all",
@@ -105,11 +105,11 @@ export function ActivityCard({ activity, activeProjectsCount = 0, criticalAlerts
 
       {/* No data state for new activities */}
       {!hasData ? (
-        <div className="flex flex-col items-center justify-center py-4 gap-2 text-center">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary">
-            <Plus className="h-4 w-4 text-muted-foreground" />
+        <div className="flex flex-col items-center justify-center py-1.5 sm:py-4 gap-1 sm:gap-2 text-center">
+          <div className="flex h-5 w-5 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-secondary">
+            <Plus className="h-2.5 w-2.5 sm:h-4 sm:w-4 text-muted-foreground" />
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[9px] sm:text-xs text-muted-foreground">
             Aggiungi progetti e dati finanziari
             <br />
             per visualizzare le KPI
@@ -118,18 +118,18 @@ export function ActivityCard({ activity, activeProjectsCount = 0, criticalAlerts
       ) : (
         <>
           {/* KPI Grid */}
-          <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-3 mb-1.5 sm:mb-3 md:mb-4">
             <div>
-              <p className="text-[10px] text-muted-foreground mb-0.5">Revenue</p>
-              <p className="text-sm font-bold tabular-nums">
+              <p className="text-[8px] sm:text-[10px] text-muted-foreground mb-0.5">Revenue</p>
+              <p className="text-[10px] sm:text-sm font-bold tabular-nums">
                 {formatCurrency(kpis.totalRevenue, "EUR", true)}
               </p>
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground mb-0.5">Margine</p>
+              <p className="text-[8px] sm:text-[10px] text-muted-foreground mb-0.5">Margine</p>
               <p
                 className={cn(
-                  "text-sm font-bold tabular-nums",
+                  "text-[10px] sm:text-sm font-bold tabular-nums",
                   kpis.grossMarginPct >= 0 ? "text-emerald-400" : "text-red-400"
                 )}
               >
@@ -137,8 +137,8 @@ export function ActivityCard({ activity, activeProjectsCount = 0, criticalAlerts
               </p>
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground mb-0.5">ROI</p>
-              <div className="flex items-center gap-1">
+              <p className="text-[8px] sm:text-[10px] text-muted-foreground mb-0.5">ROI</p>
+              <div className="flex items-center gap-0.5 sm:gap-1">
                 {kpis.roi >= 0 ? (
                   <TrendingUp className="h-3 w-3 text-emerald-400" />
                 ) : (
@@ -146,7 +146,7 @@ export function ActivityCard({ activity, activeProjectsCount = 0, criticalAlerts
                 )}
                 <p
                   className={cn(
-                    "text-sm font-bold tabular-nums",
+                    "text-[10px] sm:text-sm font-bold tabular-nums",
                     kpis.roi >= 0 ? "text-emerald-400" : "text-red-400"
                   )}
                 >
@@ -155,8 +155,8 @@ export function ActivityCard({ activity, activeProjectsCount = 0, criticalAlerts
               </div>
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground mb-0.5">Runway</p>
-              <div className="flex items-center gap-1">
+              <p className="text-[8px] sm:text-[10px] text-muted-foreground mb-0.5">Runway</p>
+              <div className="flex items-center gap-0.5 sm:gap-1">
                 <Clock
                   className={cn(
                     "h-3 w-3",
@@ -169,7 +169,7 @@ export function ActivityCard({ activity, activeProjectsCount = 0, criticalAlerts
                 />
                 <p
                   className={cn(
-                    "text-sm font-bold tabular-nums",
+                    "text-[10px] sm:text-sm font-bold tabular-nums",
                     kpis.runwayMonths <= 6
                       ? "text-red-400"
                       : kpis.runwayMonths <= 12
@@ -184,7 +184,7 @@ export function ActivityCard({ activity, activeProjectsCount = 0, criticalAlerts
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between text-[11px] text-muted-foreground border-t border-border/30 pt-3">
+          <div className="flex items-center justify-between text-[9px] sm:text-[11px] text-muted-foreground border-t border-border/30 pt-1.5 sm:pt-3 gap-1 flex-wrap">
             <span>
               {activeProjectsCount} progett{activeProjectsCount === 1 ? "o" : "i"} attiv{activeProjectsCount === 1 ? "o" : "i"}
             </span>

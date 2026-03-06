@@ -144,71 +144,75 @@ export default function GlobalDashboardPage() {
   const unreadAlerts = alerts.filter((a) => !a.isRead);
 
   return (
-    <div className="space-y-6">
-      {/* ── Global KPI Row ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        <Stat
-          label="Revenue Totale"
-          value={formatCurrency(globalKPIs.totalRevenue, "EUR", true)}
-          delta={globalKPIs.revenueGrowthRate}
-          deltaLabel="vs anno precedente"
-          icon={<TrendingUp className="h-4 w-4" />}
-          accent="#6366f1"
-          className="col-span-1"
-        />
-        <Stat
-          label="Margine Lordo"
-          value={formatCurrency(globalKPIs.grossMargin, "EUR", true)}
-          delta={globalKPIs.grossMarginPct}
-          deltaLabel="margine %"
-          icon={<Target className="h-4 w-4" />}
-          accent="#10b981"
-        />
-        <Stat
-          label="ROI Medio"
-          value={`${globalKPIs.avgROI.toFixed(1)}%`}
-          delta={globalKPIs.avgROI}
-          icon={<Activity className="h-4 w-4" />}
-          accent="#f59e0b"
-        />
-        <Stat
-          label="Profitto Netto"
-          value={formatCurrency(globalKPIs.netProfit, "EUR", true)}
-          icon={<Briefcase className="h-4 w-4" />}
-          accent="#8b5cf6"
-        />
-        <Stat
-          label="Costi Totali"
-          value={formatCurrency(globalKPIs.totalCosts, "EUR", true)}
-          icon={<TrendingDown className="h-4 w-4" />}
-          accent="#06b6d4"
-        />
-        <Stat
-          label="Attività Attive"
-          value={`${globalKPIs.activeActivities}/${globalKPIs.totalActivities}`}
-          icon={<Clock className="h-4 w-4" />}
-          accent="#10b981"
-        />
+    <div className="space-y-5 sm:space-y-8">
+      {/* ── 1. INTESTAZIONE ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-lg font-bold text-foreground">Dashboard Globale</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Riepilogo di tutte le attività e KPI aggregati
+          </p>
+        </div>
+        <Button size="sm" onClick={() => setCreateOpen(true)}>
+          <Plus className="h-3.5 w-3.5" />
+          Nuova Activity
+        </Button>
       </div>
 
-      {/* ── Main content grid ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Activities overview — 2 cols */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-foreground">
-              Activities Overview
-            </h2>
-            <div className="flex items-center gap-2">
-              <Badge variant="neutral">{activities.length} attività</Badge>
-              <Button size="sm" onClick={() => setCreateOpen(true)}>
-                <Plus className="h-3.5 w-3.5" />
-                Nuova Activity
-              </Button>
-            </div>
-          </div>
+      {/* ── 2. KPI RIEPILOGO ── */}
+      <section>
+        <h2 className="section-title mb-3">Riepilogo finanziario</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+          <Stat
+            label="Revenue Totale"
+            value={formatCurrency(globalKPIs.totalRevenue, "EUR", true)}
+            delta={globalKPIs.revenueGrowthRate}
+            deltaLabel="vs anno precedente"
+            icon={<TrendingUp className="h-4 w-4" />}
+            accent="#6366f1"
+          />
+          <Stat
+            label="Margine Lordo"
+            value={formatCurrency(globalKPIs.grossMargin, "EUR", true)}
+            delta={globalKPIs.grossMarginPct}
+            deltaLabel="margine %"
+            icon={<Target className="h-4 w-4" />}
+            accent="#10b981"
+          />
+          <Stat
+            label="ROI Medio"
+            value={`${globalKPIs.avgROI.toFixed(1)}%`}
+            delta={globalKPIs.avgROI}
+            icon={<Activity className="h-4 w-4" />}
+            accent="#f59e0b"
+          />
+          <Stat
+            label="Profitto Netto"
+            value={formatCurrency(globalKPIs.netProfit, "EUR", true)}
+            icon={<Briefcase className="h-4 w-4" />}
+            accent="#8b5cf6"
+          />
+          <Stat
+            label="Costi Totali"
+            value={formatCurrency(globalKPIs.totalCosts, "EUR", true)}
+            icon={<TrendingDown className="h-4 w-4" />}
+            accent="#06b6d4"
+          />
+          <Stat
+            label="Attività"
+            value={`${globalKPIs.activeActivities}/${globalKPIs.totalActivities}`}
+            icon={<Clock className="h-4 w-4" />}
+            accent="#10b981"
+          />
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* ── 3. ATTENZIONE (Alert + Task) + LE TUE ATTIVITÀ ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* Colonna sinistra: Attività da seguire */}
+        <div className="lg:col-span-2 space-y-3 sm:space-y-4">
+          <h2 className="section-title">Le tue attività</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {activities.map((activity) => (
               <ActivityCard
                 key={activity.id}
@@ -230,29 +234,32 @@ export default function GlobalDashboardPage() {
           </div>
         </div>
 
-        {/* Sidebar column */}
-        <div className="space-y-4">
-          {/* Alerts */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-400" />
+        {/* Colonna destra: Alert e Task critici */}
+        <div className="space-y-3 sm:space-y-4">
+          <h2 className="section-title">Da non perdere</h2>
+          <Card padding="none" className="p-3 sm:p-4 md:p-5">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
                 Alert Globali
               </CardTitle>
               {unreadAlerts.length > 0 && (
                 <Badge variant="warning">{unreadAlerts.length} non letti</Badge>
               )}
             </CardHeader>
-            <AlertPanel alerts={alerts} limit={5} />
+            <div className="pt-0">
+              <AlertPanel alerts={alerts} limit={5} />
+            </div>
           </Card>
 
-          {/* Critical tasks */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Task Critici</CardTitle>
+          <Card padding="none" className="p-3 sm:p-4 md:p-5">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm">
+                Task Critici
+              </CardTitle>
               <Badge variant="danger">{criticalTasks.length}</Badge>
             </CardHeader>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 pt-0">
               {criticalTasks.slice(0, 4).map((task) => {
                 const activity = activities.find(
                   (a) => a.id === task.activityId
@@ -305,10 +312,12 @@ export default function GlobalDashboardPage() {
         </div>
       </div>
 
-      {/* ── Charts row ── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Revenue & Costs Bar Chart */}
-        <Card className="md:col-span-2">
+      {/* ── 4. ANALISI E GRAFICI ── */}
+      <section>
+        <h2 className="section-title mb-2 sm:mb-3">Analisi per attività</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+          {/* Revenue & Costs Bar Chart */}
+          <Card padding="none" className="p-3 sm:p-5 md:col-span-2">
           <CardHeader>
             <CardTitle>Revenue vs Costi per Attività</CardTitle>
             <span className="text-xs text-muted-foreground">YTD 2025</span>
@@ -351,7 +360,7 @@ export default function GlobalDashboardPage() {
         </Card>
 
         {/* ROI Ranking */}
-        <Card>
+        <Card padding="none" className="p-3 sm:p-5">
           <CardHeader>
             <CardTitle>ROI Ranking</CardTitle>
           </CardHeader>
@@ -402,11 +411,14 @@ export default function GlobalDashboardPage() {
             })}
           </div>
         </Card>
-      </div>
+        </div>
+      </section>
 
-      {/* Revenue distribution pie */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
+      {/* ── 5. DISTRIBUZIONE E PERFORMANCE ── */}
+      <section>
+        <h2 className="section-title mb-2 sm:mb-3">Distribuzione e performance</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <Card padding="none" className="p-3 sm:p-5">
           <CardHeader>
             <CardTitle>Distribuzione Revenue</CardTitle>
           </CardHeader>
@@ -453,7 +465,7 @@ export default function GlobalDashboardPage() {
         </Card>
 
         {/* Health radar */}
-        <Card>
+        <Card padding="none" className="p-3 sm:p-5">
           <CardHeader>
             <CardTitle>Health Score Comparativo</CardTitle>
           </CardHeader>
@@ -477,7 +489,8 @@ export default function GlobalDashboardPage() {
           </ResponsiveContainer>
           </ClientOnly>
         </Card>
-      </div>
+        </div>
+      </section>
 
       <ActivityForm
         open={createOpen}

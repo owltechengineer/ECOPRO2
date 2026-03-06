@@ -32,7 +32,7 @@ export function Stat({
         <span className="data-label">{label}</span>
         {icon && (
           <div
-            className="flex h-8 w-8 items-center justify-center rounded-lg"
+            className="flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-lg shrink-0"
             style={{ backgroundColor: accent ? `${accent}20` : undefined }}
           >
             <span style={{ color: accent ?? undefined }}>{icon}</span>
@@ -44,7 +44,7 @@ export function Stat({
         <span
           className={cn(
             "font-bold tabular-nums leading-none",
-            size === "lg" ? "text-3xl" : size === "sm" ? "text-xl" : "text-2xl"
+            size === "lg" ? "text-xl sm:text-2xl md:text-3xl" : size === "sm" ? "text-base sm:text-lg md:text-xl" : "text-lg sm:text-xl md:text-2xl"
           )}
         >
           {value}

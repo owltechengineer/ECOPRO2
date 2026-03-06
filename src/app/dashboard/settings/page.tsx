@@ -43,16 +43,16 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-4 sm:space-y-6 max-w-4xl">
       <div>
-        <h2 className="text-lg font-bold">Impostazioni</h2>
-        <p className="text-sm text-muted-foreground">
+        <h2 className="text-base sm:text-lg font-bold">Impostazioni</h2>
+        <p className="text-xs sm:text-sm text-muted-foreground">
           Gestisci le tue activities, preferenze globali e integrazioni
         </p>
       </div>
 
       {/* ── Activities Management ── */}
-      <Card>
+      <Card padding="none" className="p-3 sm:p-5">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ActivityIcon className="h-4 w-4 text-primary" />
@@ -69,7 +69,7 @@ export default function SettingsPage() {
             <div
               key={activity.id}
               className={cn(
-                "flex items-center gap-4 p-3.5 rounded-xl border transition-colors",
+                "flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-3.5 rounded-lg sm:rounded-xl border transition-colors",
                 activity.isActive
                   ? "border-border/50 bg-card hover:bg-accent/10"
                   : "border-border/30 bg-secondary/20 opacity-60"
@@ -77,7 +77,7 @@ export default function SettingsPage() {
             >
               {/* Icon */}
               <div
-                className="flex h-10 w-10 items-center justify-center rounded-xl font-black text-sm shrink-0"
+                className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl font-black text-xs sm:text-sm shrink-0"
                 style={{
                   backgroundColor: `${activity.color}20`,
                   color: activity.color,
@@ -105,7 +105,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-1 shrink-0">
+              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0 self-end sm:self-auto">
                 <button
                   onClick={() => handleToggle(activity)}
                   className={cn(

@@ -62,7 +62,7 @@ export function ActivityActions({
         >
           <Power className="h-3.5 w-3.5 shrink-0" />
           {showLabels && (
-            <span>{activity.isActive ? "Disattiva" : "Attiva"}</span>
+            <span className="hidden sm:inline">{activity.isActive ? "Disattiva" : "Attiva"}</span>
           )}
         </button>
 
@@ -73,7 +73,7 @@ export function ActivityActions({
           title="Modifica activity"
         >
           <Pencil className="h-3.5 w-3.5 shrink-0" />
-          {showLabels && <span>Modifica</span>}
+          {showLabels && <span className="hidden sm:inline">Modifica</span>}
         </button>
 
         {/* Delete */}
@@ -83,7 +83,7 @@ export function ActivityActions({
           title="Elimina activity"
         >
           <Trash2 className="h-3.5 w-3.5 shrink-0" />
-          {showLabels && <span>Elimina</span>}
+          {showLabels && <span className="hidden sm:inline">Elimina</span>}
         </button>
       </div>
 

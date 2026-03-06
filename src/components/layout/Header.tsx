@@ -1,15 +1,17 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { cn, formatDate } from "@/lib/utils";
 import { useAppStore } from "@/store/app.store";
 import { getGlobalAlerts } from "@/data/mock";
-import { Bell, Search, RefreshCw, Settings, LogOut } from "lucide-react";
+import { getFinancialReminders, type FinancialReminderDisplay } from "@/actions/financial";
+import { Bell, Search, RefreshCw, Settings, LogOut, Menu } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
 import { AlertPanel } from "@/components/dashboard/AlertPanel";
+import { ReminderPanel } from "@/components/dashboard/ReminderPanel";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -54,6 +56,21 @@ export function Header() {
   const alerts = allAlerts.filter((a) => !a.isRead);
   const criticalAlerts = alerts.filter((a) => a.severity === "critical");
 
+  const [reminders, setReminders] = useState<FinancialReminderDisplay[]>([]);
+  const activityIds = activities.filter((a) => a.isActive).map((a) => a.id);
+  useEffect(() => {
+    if (activityIds.length === 0) {
+      setReminders([]);
+      return;
+    }
+    getFinancialReminders(activityIds).then((r) => {
+      if (r.ok) setReminders(r.data);
+    });
+  }, [activityIds.join(",")]);
+
+  const totalNotifications = alerts.length + reminders.length;
+  const activityNames = Object.fromEntries(activities.map((a) => [a.id, a.name]));
+
   const title = getPageTitle(pathname, currentActivity?.name);
 
   const filteredActivities = searchQuery.trim()
@@ -66,6 +83,8 @@ export function Header() {
 
   const handleRefresh = () => router.refresh();
 
+  const { setSidebarOpen } = useAppStore();
+
   const handleSearchSelect = (activityId: string) => {
     setCurrentActivity(activityId);
     setSearchOpen(false);
@@ -74,24 +93,31 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 backdrop-blur-sm px-6 gap-4">
-      {/* Title area */}
-      <div className="flex items-center gap-3 min-w-0">
+    <header className="sticky top-0 z-20 flex h-12 md:h-14 items-center justify-between border-b border-border/50 bg-background/80 backdrop-blur-sm px-3 sm:px-4 md:px-6 gap-2 md:gap-4">
+      {/* Left: hamburger (mobile) + title */}
+      <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="flex md:hidden h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+          aria-label="Apri menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
         {currentActivity && (
           <div
             className="h-5 w-1 rounded-full shrink-0"
             style={{ backgroundColor: currentActivity.color }}
           />
         )}
-        <h1 className="text-sm font-semibold text-foreground truncate">
+        <h1 className="text-xs md:text-sm font-semibold text-foreground truncate">
           {title}
         </h1>
       </div>
 
       {/* Right controls */}
-      <div className="flex items-center gap-2 shrink-0">
-        {/* Date */}
-        <span className="hidden sm:block text-xs text-muted-foreground">
+      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+        {/* Date - hide on very small */}
+        <span className="hidden sm:block text-[10px] md:text-xs text-muted-foreground">
           {formatDate(new Date().toISOString(), "long")}
         </span>
 
@@ -100,7 +126,7 @@ export function Header() {
         {/* Search */}
         <button
           onClick={() => setSearchOpen(true)}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+          className="flex h-8 w-8 min-w-[2rem] items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
           aria-label="Cerca"
         >
           <Search className="h-4 w-4" />
@@ -109,7 +135,7 @@ export function Header() {
         {/* Refresh */}
         <button
           onClick={handleRefresh}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+          className="flex h-8 w-8 min-w-[2rem] items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
           aria-label="Ricarica"
         >
           <RefreshCw className="h-4 w-4" />
@@ -119,28 +145,38 @@ export function Header() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
-              className="relative flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              className="relative flex h-8 w-8 min-w-[2rem] items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
               aria-label="Notifiche"
             >
               <Bell className="h-4 w-4" />
-              {alerts.length > 0 && (
+              {totalNotifications > 0 && (
                 <span
                   className={cn(
-                    "absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center",
+                    "absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center min-w-[1rem]",
                     "rounded-full text-[9px] font-bold text-white",
                     criticalAlerts.length > 0 ? "bg-red-500" : "bg-amber-500"
                   )}
                 >
-                  {alerts.length}
+                  {totalNotifications > 9 ? "9+" : totalNotifications}
                 </span>
               )}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-80 max-h-[min(24rem,70vh)] overflow-y-auto p-0">
+          <DropdownMenuContent className="w-80 max-h-[min(28rem,70vh)] overflow-y-auto p-0">
             <div className="p-3 border-b border-border/50">
               <h3 className="text-sm font-semibold text-foreground">Notifiche</h3>
             </div>
-            <div className="p-3">
+            <div className="p-3 space-y-4">
+              {reminders.length > 0 && (
+                <ReminderPanel
+                  reminders={reminders}
+                  activityNames={activityNames}
+                  limit={5}
+                />
+              )}
+              {reminders.length > 0 && allAlerts.length > 0 && (
+                <div className="border-t border-border/50 pt-3" />
+              )}
               <AlertPanel alerts={allAlerts} limit={10} />
             </div>
           </DropdownMenuContent>
@@ -150,7 +186,7 @@ export function Header() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/20 hover:bg-primary/30 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+              className="flex h-7 w-7 min-w-[1.75rem] items-center justify-center rounded-full bg-primary/20 hover:bg-primary/30 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
               aria-label="Account"
             >
               <span className="text-[11px] font-bold text-primary">F</span>

@@ -251,19 +251,19 @@ export default function AIPage({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-bold flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-base sm:text-lg font-bold flex items-center gap-2">
             <Bot className="h-5 w-5 text-primary" />
             AI Reports & Intelligence
           </h2>
-          <p className="text-sm text-muted-foreground">
-            Analisi AI per {activity.name} — powered by LLM
+          <p className="text-xs sm:text-sm text-muted-foreground truncate">
+            Analisi AI per {activity.name}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <ActivityActions activity={activity} />
           <Button
             size="sm"
@@ -277,7 +277,7 @@ export default function AIPage({
       </div>
 
       {/* AI Prompt Library */}
-      <Card>
+      <Card padding="none" className="p-3 sm:p-5">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" />
@@ -287,13 +287,13 @@ export default function AIPage({
             Seleziona un modulo di analisi
           </span>
         </CardHeader>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 sm:gap-3">
           {AI_PROMPTS.map((prompt) => (
             <button
               key={prompt.id}
               onClick={() => handleGenerate(prompt.id)}
               className={cn(
-                "flex flex-col gap-2 p-3 rounded-lg border text-left transition-all duration-200",
+                "flex flex-col gap-1.5 sm:gap-2 p-2.5 sm:p-3 rounded-lg border text-left transition-all duration-200",
                 "hover:border-primary/40 hover:bg-primary/5",
                 selectedPrompt === prompt.id && isGenerating
                   ? "border-primary/50 bg-primary/5 animate-pulse"
@@ -327,7 +327,7 @@ export default function AIPage({
         <>
           {/* Report header */}
           <div
-            className="rounded-xl border p-5"
+            className="rounded-lg sm:rounded-xl border p-3 sm:p-5"
             style={{ borderColor: `${activity.color}30`, background: `${activity.color}05` }}
           >
             <div className="flex items-start justify-between gap-4 mb-3">
@@ -352,19 +352,19 @@ export default function AIPage({
           </div>
 
           {/* Insights */}
-          <Card>
+          <Card padding="none" className="p-3 sm:p-5">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-amber-400" />
                 Insights ({report.insights.length})
               </CardTitle>
             </CardHeader>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
               {report.insights.map((insight) => (
                 <div
                   key={insight.id}
                   className={cn(
-                    "rounded-lg border p-4",
+                    "rounded-lg border p-3 sm:p-4",
                     getSeverityBg(insight.severity)
                   )}
                 >
